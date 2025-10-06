@@ -18,3 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  kakao:
+    api-key: ${KAKAO_RESTAPI_KEY}
+    redirect_url: http://localhost:8080/callback
