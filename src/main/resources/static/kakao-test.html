@@ -1,29 +1,60 @@
-<!doctype html>
-<html>
-<body>
-<h3>Kakao Login API Test</h3>
-<label>Authorization Code: <input id="code" size="80"></label><br/>
-<label>Redirect URI: <input id="redir" size="80" value="http://localhost:8080/callback"></label><br/>
-<button id="send">POST /api/v1/auth/kakao/login</button>
-<pre id="out"></pre>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>카카오 로그인 테스트</title>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+    <script>
+        // 1. 카카오 SDK 초기화
+        Kakao.init("여기 js 카카오 키 넣기");//여기 js 카카오 키 넣기
 
-<script>
-    document.getElementById('send').onclick = async () => {
-        const body = {
-            authorizationCode: document.getElementById('code').value.trim(),
-            redirectUri: document.getElementById('redir').value.trim(),
-            kakaoAccessToken: null,
-            device: null,
-            pushToken: null
-        };
-        const res = await fetch("http://localhost:8080/api/v1/auth/kakao/login", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(body)
-        });
-        document.getElementById('out').textContent =
-            (res.status + " " + res.statusText + "\n\n") + await res.text();
-    };
-</script>
+        function loginWithKakao() {
+            console.log("카카오 로그인 버튼 클릭됨");
+            Kakao.Auth.authorize({
+                // 2. 현재 페이지 주소를 redirectUri로 사용
+                redirectUri: window.location.href
+            });
+        }
+
+        // 페이지 로드 시 실행
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code) {
+                document.getElementById('result').innerText = "인가 코드 수신 성공. 백엔드에 토큰 요청 중...";
+
+                // 3. URL에 인가 코드가 있으면 백엔드에 로그인 요청
+                fetch('/api/v1/auth/kakao/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        authorizationCode: code,
+                        redirectUri: window.location.href.split('?')[0] // 쿼리 파라미터를 제외한 순수 URL
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // 4. 백엔드 응답 결과를 화면에 표시
+                    const resultElement = document.getElementById('result');
+                    resultElement.innerText = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').innerText = "백엔드 요청 실패: " + error;
+                });
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>카카오 로그인 테스트</h1>
+    <p>애플리케이션을 실행하고, 브라우저에서 http://localhost:8080/kakao-test.html 로 접속하세요.</p>
+    <button onclick="loginWithKakao()">카카오로 로그인하기</button>
+
+    <h2>백엔드 응답 결과:</h2>
+    <pre id="result" style="background-color: #f4f4f4; padding: 10px; border: 1px solid #ccc;"></pre>
 </body>
 </html>
