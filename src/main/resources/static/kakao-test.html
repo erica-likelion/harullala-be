@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<body>
+<h3>Kakao Login API Test</h3>
+<label>Authorization Code: <input id="code" size="80"></label><br/>
+<label>Redirect URI: <input id="redir" size="80" value="http://localhost:8080/callback"></label><br/>
+<button id="send">POST /api/v1/auth/kakao/login</button>
+<pre id="out"></pre>
+
+<script>
+    document.getElementById('send').onclick = async () => {
+        const body = {
+            authorizationCode: document.getElementById('code').value.trim(),
+            redirectUri: document.getElementById('redir').value.trim(),
+            kakaoAccessToken: null,
+            device: null,
+            pushToken: null
+        };
+        const res = await fetch("http://localhost:8080/api/v1/auth/kakao/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        });
+        document.getElementById('out').textContent =
+            (res.status + " " + res.statusText + "\n\n") + await res.text();
+    };
+</script>
+</body>
+</html>

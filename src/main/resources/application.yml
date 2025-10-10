@@ -21,4 +21,4 @@ spring:
 
   kakao:
     api-key: ${KAKAO_RESTAPI_KEY}
-    redirect_url: http://localhost:8080/callback
+    redirect_url: ${REDIRECT}
