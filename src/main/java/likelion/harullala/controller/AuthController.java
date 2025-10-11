@@ -5,7 +5,6 @@ import likelion.harullala.dto.TokenRefreshRequest;
 import likelion.harullala.dto.TokenRefreshResponse;
 import likelion.harullala.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +18,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiSuccess<TokenRefreshResponse>> refreshToken(@RequestBody TokenRefreshRequest request) {
+    public ApiSuccess<TokenRefreshResponse> refreshToken(@RequestBody TokenRefreshRequest request) {
         TokenRefreshResponse response = authService.refresh(request);
-        return ResponseEntity.ok(ApiSuccess.success(response));
+        return ApiSuccess.of(response, "토큰 재발급에 성공했습니다.");
     }
 }
