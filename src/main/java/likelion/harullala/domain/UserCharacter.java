@@ -35,4 +35,8 @@ public class UserCharacter {
     @CreationTimestamp
     @Column(name = "selected_at", nullable = false, updatable = false)
     private LocalDateTime selectedAt;
+
+    public void updateCharacter(Character newCharacter) {
+        this.character = newCharacter;
+    }
 }

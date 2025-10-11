@@ -3,6 +3,7 @@ package likelion.harullala.controller;
 import likelion.harullala.config.security.CustomUserDetails;
 import likelion.harullala.dto.ApiSuccess;
 import likelion.harullala.dto.CharacterInfo;
+import likelion.harullala.dto.SelectCharacterRequest;
 import likelion.harullala.service.CharacterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,10 +27,10 @@ public class CharacterController {
         return ApiSuccess.of(characterInfos, "캐릭터 목록 조회가 성공했습니다.");
     }
 
-    @PostMapping("/{characterId}/select")
-    public ApiSuccess<?> selectCharacter(@PathVariable Long characterId, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    @PostMapping("/select")
+    public ApiSuccess<?> selectCharacter(@RequestBody SelectCharacterRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails.getUser().getId();
-        characterService.selectCharacter(userId, characterId);
+        characterService.selectCharacter(userId, request.getCharacterId());
 
         return ApiSuccess.of(null, "캐릭터가 성공적으로 선택되었습니다.");
     }

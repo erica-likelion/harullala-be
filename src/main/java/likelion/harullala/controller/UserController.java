@@ -3,12 +3,11 @@ package likelion.harullala.controller;
 import likelion.harullala.config.security.CustomUserDetails;
 import likelion.harullala.dto.ApiSuccess;
 import likelion.harullala.dto.MyInfoResponse;
+import likelion.harullala.dto.UpdateCharacterRequest;
 import likelion.harullala.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,5 +22,13 @@ public class UserController {
         MyInfoResponse myInfo = userService.getMyInfo(userId);
 
         return ApiSuccess.of(myInfo, "내 정보 조회가 성공했습니다.");
+    }
+
+    @PutMapping("/me/character")
+    public ApiSuccess<?> updateCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UpdateCharacterRequest request) {
+        Long userId = userDetails.getUser().getId();
+        userService.updateCharacter(userId, request.getCharacterId());
+
+        return ApiSuccess.of(null, "캐릭터가 성공적으로 수정되었습니다.");
     }
 }

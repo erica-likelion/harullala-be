@@ -1,6 +1,9 @@
 package likelion.harullala.service.impl;
 
+import likelion.harullala.domain.Character;
 import likelion.harullala.domain.User;
+import likelion.harullala.domain.UserCharacter;
+import likelion.harullala.repository.CharacterRepository;
 import likelion.harullala.repository.UserCharacterRepository;
 import likelion.harullala.repository.UserRepository;
 import likelion.harullala.dto.CharacterInfo;
@@ -17,6 +20,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserCharacterRepository userCharacterRepository;
+    private final CharacterRepository characterRepository;
 
     @Override
     public MyInfoResponse getMyInfo(Long userId) {
@@ -28,5 +32,17 @@ public class UserServiceImpl implements UserService {
                 .orElse(null);
 
         return MyInfoResponse.of(user, characterInfo);
+    }
+
+    @Override
+    @Transactional
+    public void updateCharacter(Long userId, Long newCharacterId) {
+        UserCharacter userCharacter = userCharacterRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("User has not selected a character yet."));
+
+        Character newCharacter = characterRepository.findById(newCharacterId)
+                .orElseThrow(() -> new IllegalArgumentException("Character not found"));
+
+        userCharacter.updateCharacter(newCharacter);
     }
 }
