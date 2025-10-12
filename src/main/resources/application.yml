@@ -2,19 +2,30 @@ spring:
   application:
     name: harullala
 
-  #DB_URL, DB_USERNAME, DB_PASSWORD ?? .env ??? ?? github? DB password ??? ??
-  #env template ??
+  # H2 인메모리 데이터베이스 설정 (개발용)
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: 
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# OpenAI API 설정
+openai:
+  api:
+    key: ${OPENAI_API_KEY:}
+    url: https://api.openai.com/v1/chat/completions
+    model: gpt-3.5-turbo # Default model, can be overridden by user
