@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/feedback")
 @RequiredArgsConstructor
-class AiFeedbackController {
+public class AiFeedbackController {
     private final AiFeedbackService service;
 
     @PostMapping
