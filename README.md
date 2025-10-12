@@ -1,63 +1,33 @@
-# 하룰랄라 백엔드
+# AI 피드백 시스템
 
----
-## 프로젝트 구조
+## 🚀 빠른 시작
 
-```text
-harullala/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── likelion/harullala/
-│   │   │       ├── HarullalaApplication.java
-│   │   │       ├── config/         
-│   │   │       ├── controller/     
-│   │   │       ├── domain/         
-│   │   │       ├── dto/            
-│   │   │       ├── exception/      
-│   │   │       ├── repository/     
-│   │   │       └── service/        
-│   │   └── resources/              
-│   └── test/                     
-├── .github/                      
-├── scripts/                      
-├── build.gradle                     
-└── README.md
+### 1. 환경변수 설정
+```bash
+# Windows (PowerShell)
+$env:OPENAI_API_KEY="your-openai-api-key"
+
+# Windows (CMD)
+set OPENAI_API_KEY=your-openai-api-key
+
+# Linux/Mac
+export OPENAI_API_KEY="your-openai-api-key"
 ```
----
 
-## 🛠️ 기술 스택
-
-| 분야     | 스택                |
-|--------|-------------------|
-| 언어     | Java 17           |
-| 프레임워크  | Spring Boot 3.5.4 |
-| 데이터베이스 | MySQL 8.0         |
-| 빌드 도구  | Gradle 8.9        |
-| ORM    | Spring Data JPA   |
-| 배포     | AWS 예정            |
-
----
-## Commit Convection
+### 2. 서버 실행
+```bash
+./gradlew bootRun
 ```
-feat: 새로운 기능 추가
 
-fix: 버그 수정
+### 3. 테스트
+- 브라우저: `http://localhost:8080/test.html`
+- API: POST `/api/v1/feedback` (recordId: 1, 2, 3)
 
-docs: 문서 수정
+## 🔑 OpenAI API 키 발급
+1. https://platform.openai.com/api-keys 접속
+2. "Create new secret key" 클릭
+3. 키 복사 후 환경변수에 설정
 
-style: 코드 포맷팅, 세미콜론 누락, 코드 변경이 없는 경우
-
-refactor: 코드 리팩토링
-
-test: 테스트 코드, 리팩토링 테스트 코드 추가
-
-chore: 빌드 업무 수정, 패키지 매니저 수정, production code와 무관한 부분들
-
-comment: 주석 추가 및 변경
-
-remove: 파일, 폴더 삭제
-
-rename: 파일, 폴더명 수정
-```
----
+## ⚠️ 주의사항
+- API 키는 절대 Git에 커밋하지 마세요!
+- 테스트용 샘플 데이터가 포함되어 있습니다.
