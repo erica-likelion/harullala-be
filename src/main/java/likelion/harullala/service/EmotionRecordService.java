@@ -2,6 +2,7 @@ package likelion.harullala.service;
 
 import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.dto.EmotionCreateRequest;
+import likelion.harullala.dto.EmotionDeleteResponse;
 import likelion.harullala.dto.EmotionListResponse;
 import likelion.harullala.dto.EmotionResponse;
 import likelion.harullala.dto.EmotionUpdateRequest;
@@ -96,6 +97,27 @@ public class EmotionRecordService {
 
         // Response로 변환하여 반환
         return EmotionUpdateResponse.from(emotionRecord);
+    }
+
+    /**
+     * 감정기록 삭제 (소프트 삭제)
+     */
+    @Transactional
+    public EmotionDeleteResponse deleteEmotionRecord(Long userId, Long recordId) {
+        // 감정기록 조회
+        EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)
+                .orElseThrow(() -> new EmotionRecordNotFoundException("Emotion record not found"));
+
+        // 권한 확인 - 본인의 감정기록인지 체크
+        if (!emotionRecord.getUserId().equals(userId)) {
+            throw new ForbiddenAccessException("You do not have permission");
+        }
+
+        // 소프트 삭제 (더티 체킹으로 자동 업데이트)
+        emotionRecord.softDelete();
+
+        // Response로 변환하여 반환
+        return EmotionDeleteResponse.from(emotionRecord);
     }
 }
 

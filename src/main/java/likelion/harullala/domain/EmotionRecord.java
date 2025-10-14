@@ -56,6 +56,13 @@ public class EmotionRecord {
         this.record = record;
         this.emojiEmotion = emojiEmotion;
     }
+
+    /**
+     * 감정기록 소프트 삭제
+     */
+    public void softDelete() {
+        this.isDeleted = true;
+    }
 }
 
 

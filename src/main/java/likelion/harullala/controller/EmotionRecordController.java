@@ -3,6 +3,7 @@ package likelion.harullala.controller;
 import jakarta.validation.Valid;
 import likelion.harullala.dto.ApiResponse;
 import likelion.harullala.dto.EmotionCreateRequest;
+import likelion.harullala.dto.EmotionDeleteResponse;
 import likelion.harullala.dto.EmotionListResponse;
 import likelion.harullala.dto.EmotionResponse;
 import likelion.harullala.dto.EmotionUpdateRequest;
@@ -114,6 +115,29 @@ public class EmotionRecordController {
                 .body(ApiResponse.success(
                         200,
                         "감정기록 수정 완료",
+                        response
+                ));
+    }
+
+    /**
+     * 감정기록 삭제 API (소프트 삭제)
+     * DELETE /api/v1/emotion/{recordId}
+     */
+    @DeleteMapping("/{recordId}")
+    public ResponseEntity<ApiResponse<EmotionDeleteResponse>> deleteEmotionRecord(
+            @PathVariable Long recordId,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
+        Long userId = 1L; // 임시 userId
+
+        EmotionDeleteResponse response = emotionRecordService.deleteEmotionRecord(userId, recordId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(
+                        200,
+                        "감정기록이 삭제되었습니다.",
                         response
                 ));
     }
