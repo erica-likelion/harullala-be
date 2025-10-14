@@ -4,6 +4,8 @@ import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.dto.EmotionCreateRequest;
 import likelion.harullala.dto.EmotionListResponse;
 import likelion.harullala.dto.EmotionResponse;
+import likelion.harullala.dto.EmotionUpdateRequest;
+import likelion.harullala.dto.EmotionUpdateResponse;
 import likelion.harullala.exception.EmotionRecordNotFoundException;
 import likelion.harullala.exception.ForbiddenAccessException;
 import likelion.harullala.repository.EmotionRecordRepository;
@@ -73,6 +75,27 @@ public class EmotionRecordService {
 
         // Response로 변환하여 반환
         return EmotionResponse.from(emotionRecord);
+    }
+
+    /**
+     * 감정기록 수정
+     */
+    @Transactional
+    public EmotionUpdateResponse updateEmotionRecord(Long userId, Long recordId, EmotionUpdateRequest request) {
+        // 감정기록 조회
+        EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)
+                .orElseThrow(() -> new EmotionRecordNotFoundException("Emotion record not found"));
+
+        // 권한 확인 - 본인의 감정기록인지 체크
+        if (!emotionRecord.getUserId().equals(userId)) {
+            throw new ForbiddenAccessException("You do not have permission to update this record");
+        }
+
+        // 감정기록 업데이트 (더티 체킹으로 자동 업데이트)
+        emotionRecord.update(request.getRecord(), request.getEmoji_emotion());
+
+        // Response로 변환하여 반환
+        return EmotionUpdateResponse.from(emotionRecord);
     }
 }
 

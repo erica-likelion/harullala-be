@@ -48,6 +48,14 @@ public class EmotionRecord {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    /**
+     * 감정기록 업데이트
+     */
+    public void update(String record, EmojiEmotion emojiEmotion) {
+        this.record = record;
+        this.emojiEmotion = emojiEmotion;
+    }
 }
 
 

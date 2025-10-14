@@ -5,6 +5,8 @@ import likelion.harullala.dto.ApiResponse;
 import likelion.harullala.dto.EmotionCreateRequest;
 import likelion.harullala.dto.EmotionListResponse;
 import likelion.harullala.dto.EmotionResponse;
+import likelion.harullala.dto.EmotionUpdateRequest;
+import likelion.harullala.dto.EmotionUpdateResponse;
 import likelion.harullala.service.EmotionRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -88,6 +90,30 @@ public class EmotionRecordController {
                 .body(ApiResponse.success(
                         200,
                         "감정기록 조회 성공",
+                        response
+                ));
+    }
+
+    /**
+     * 감정기록 수정 API
+     * PUT /api/v1/emotion/{recordId}
+     */
+    @PutMapping("/{recordId}")
+    public ResponseEntity<ApiResponse<EmotionUpdateResponse>> updateEmotionRecord(
+            @PathVariable Long recordId,
+            @Valid @RequestBody EmotionUpdateRequest request,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
+        Long userId = 1L; // 임시 userId
+
+        EmotionUpdateResponse response = emotionRecordService.updateEmotionRecord(userId, recordId, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(
+                        200,
+                        "감정기록 수정 완료",
                         response
                 ));
     }
