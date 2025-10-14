@@ -4,6 +4,8 @@ import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.dto.EmotionCreateRequest;
 import likelion.harullala.dto.EmotionListResponse;
 import likelion.harullala.dto.EmotionResponse;
+import likelion.harullala.exception.EmotionRecordNotFoundException;
+import likelion.harullala.exception.ForbiddenAccessException;
 import likelion.harullala.repository.EmotionRecordRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -54,6 +56,23 @@ public class EmotionRecordService {
         return emotionRecords.getContent().stream()
                 .map(EmotionListResponse::from)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 감정기록 단일 조회
+     */
+    public EmotionResponse getEmotionRecord(Long userId, Long recordId) {
+        // 감정기록 조회
+        EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)
+                .orElseThrow(() -> new EmotionRecordNotFoundException("Emotion record not found"));
+
+        // 권한 확인 - 본인의 감정기록인지 체크
+        if (!emotionRecord.getUserId().equals(userId)) {
+            throw new ForbiddenAccessException("You do not have permission");
+        }
+
+        // Response로 변환하여 반환
+        return EmotionResponse.from(emotionRecord);
     }
 }
 

@@ -33,6 +33,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 감정기록을 찾을 수 없는 경우 (404)
+     */
+    @ExceptionHandler(EmotionRecordNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEmotionRecordNotFoundException(
+            EmotionRecordNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(404, ex.getMessage()));
+    }
+
+    /**
+     * 권한이 없는 접근 시도 (403)
+     */
+    @ExceptionHandler(ForbiddenAccessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleForbiddenAccessException(
+            ForbiddenAccessException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(403, ex.getMessage()));
+    }
+
+    /**
      * 일반 예외 처리
      */
     @ExceptionHandler(Exception.class)

@@ -68,6 +68,29 @@ public class EmotionRecordController {
                         response
                 ));
     }
+
+    /**
+     * 감정기록 단일 조회 API
+     * GET /api/v1/emotion/{recordId}
+     */
+    @GetMapping("/{recordId}")
+    public ResponseEntity<ApiResponse<EmotionResponse>> getEmotionRecord(
+            @PathVariable Long recordId,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
+        Long userId = 1L; // 임시 userId
+
+        EmotionResponse response = emotionRecordService.getEmotionRecord(userId, recordId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(
+                        200,
+                        "감정기록 조회 성공",
+                        response
+                ));
+    }
 }
 
 
