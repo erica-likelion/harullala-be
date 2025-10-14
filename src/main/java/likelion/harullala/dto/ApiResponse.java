@@ -1,32 +1,22 @@
 package likelion.harullala.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
 @Builder
 public class ApiResponse<T> {
-    private int code;
-    private String message;
-    private T data;
-
-    public static <T> ApiResponse<T> success(int code, String message, T data) {
-        return ApiResponse.<T>builder()
-                .code(code)
-                .message(message)
-                .data(data)
-                .build();
+    private final int code;
+    private final String message;
+    private final T data;
+    
+    public ApiResponse(int code, String message, T data) {
+        this.code = code;
+        this.message = message;
+        this.data = data;
     }
-
-    public static <T> ApiResponse<T> error(int code, String message) {
-        return ApiResponse.<T>builder()
-                .code(code)
-                .message(message)
-                .data(null)
-                .build();
+    
+    public static <T> ApiResponse<T> ok(String message, T data) {
+        return new ApiResponse<>(200, message, data);
     }
 }
-
-

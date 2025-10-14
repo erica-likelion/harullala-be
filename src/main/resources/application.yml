@@ -18,3 +18,18 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  kakao:
+    api-key: ${KAKAO_RESTAPI_KEY}
+    redirect_url: ${REDIRECT}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-validity-in-seconds: 3600 # 1시간
+  refresh-token-validity-in-seconds: 604800 # 7일
+# OpenAI API 설정
+openai:
+  api:
+    key: ${OPENAI_API_KEY:}
+    url: https://api.openai.com/v1/chat/completions
+    model: gpt-3.5-turbo # Default model, can be overridden by user
