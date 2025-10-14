@@ -6,3 +6,4 @@ public class EmotionRecordNotFoundException extends RuntimeException {
     }
 }
 
+
