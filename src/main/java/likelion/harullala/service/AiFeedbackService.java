@@ -49,7 +49,7 @@ public class AiFeedbackService {
             throw new ApiException(HttpStatus.CONFLICT, "Feedback limit exceeded (3/3)");
         }
 
-        String aiReply = chatGptClient.generateFeedback(rec.text(), rec.emoji(), rec.character());
+        String aiReply = chatGptClient.generateFeedback(rec.text(), rec.emoji().name(), rec.character());
 
         if (f == null) {
             f = new AiFeedback();
