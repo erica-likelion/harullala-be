@@ -28,9 +28,9 @@ public class EmotionRecord {
     @Column(name = "emoji_emotion", nullable = false)
     private EmojiEmotion emojiEmotion;
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_shared", nullable = false)
     @Builder.Default
-    private Boolean isDeleted = false;
+    private Boolean isShared = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -58,10 +58,10 @@ public class EmotionRecord {
     }
 
     /**
-     * 감정기록 소프트 삭제
+     * 감정기록 공유 상태 변경
      */
-    public void softDelete() {
-        this.isDeleted = true;
+    public void updateSharedStatus(Boolean isShared) {
+        this.isShared = isShared;
     }
 }
 

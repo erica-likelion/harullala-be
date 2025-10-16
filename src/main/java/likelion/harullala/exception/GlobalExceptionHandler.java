@@ -1,6 +1,9 @@
 package likelion.harullala.exception;
 
+import likelion.harullala.dto.ApiResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,7 +29,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(400, "Invalid request body"));
+                .body(new ApiResponse<>(400, "Invalid request body", errors));
+    }
+
+    /**
+     * API 예외 처리
+     */
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException e) {
+        return ResponseEntity.status(e.getStatus())
+                .body(new ApiResponse<>(e.getStatus().value(), e.getMessage(), null));
     }
 
     /**
@@ -37,7 +49,7 @@ public class GlobalExceptionHandler {
             EmotionRecordNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(404, ex.getMessage()));
+                .body(new ApiResponse<>(404, ex.getMessage(), null));
     }
 
     /**
@@ -48,7 +60,7 @@ public class GlobalExceptionHandler {
             ForbiddenAccessException ex) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error(403, ex.getMessage()));
+                .body(new ApiResponse<>(403, ex.getMessage(), null));
     }
 
     /**
@@ -58,25 +70,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleGlobalException(Exception ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(500, "Internal server error, please try again later"));
-    }
-}
-
-
-import likelion.harullala.dto.ApiResponse;
-
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(ApiException.class)
-    ResponseEntity<ApiResponse<Void>> handle(ApiException e) {
-        return ResponseEntity.status(e.getStatus())
-                .body(new ApiResponse<>(e.getStatus().value(), e.getMessage(), null));
-    }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse<Void>> handleValidation() {
-        return ResponseEntity.badRequest()
-                .body(new ApiResponse<>(400, "Validation error", null));
+                .body(new ApiResponse<>(500, "Internal server error, please try again later", null));
     }
 }

@@ -34,7 +34,7 @@ public class EmotionRecordService {
                 .userId(userId)
                 .record(request.getRecord())
                 .emojiEmotion(request.getEmoji_emotion())
-                .isDeleted(false)
+                .isShared(false)
                 .build();
 
         // 저장
@@ -51,9 +51,9 @@ public class EmotionRecordService {
         // 페이지는 0부터 시작하므로 -1
         Pageable pageable = PageRequest.of(page - 1, size);
         
-        // 사용자의 삭제되지 않은 감정기록 조회 (최신순)
+        // 사용자의 감정기록 조회 (최신순)
         Page<EmotionRecord> emotionRecords = emotionRecordRepository
-                .findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(userId, pageable);
+                .findByUserIdOrderByCreatedAtDesc(userId, pageable);
         
         // DTO로 변환
         return emotionRecords.getContent().stream()
@@ -100,7 +100,7 @@ public class EmotionRecordService {
     }
 
     /**
-     * 감정기록 삭제 (소프트 삭제)
+     * 감정기록 삭제
      */
     @Transactional
     public EmotionDeleteResponse deleteEmotionRecord(Long userId, Long recordId) {
@@ -113,11 +113,49 @@ public class EmotionRecordService {
             throw new ForbiddenAccessException("You do not have permission");
         }
 
-        // 소프트 삭제 (더티 체킹으로 자동 업데이트)
-        emotionRecord.softDelete();
+        // 실제 삭제
+        emotionRecordRepository.delete(emotionRecord);
 
         // Response로 변환하여 반환
         return EmotionDeleteResponse.from(emotionRecord);
+    }
+
+    /**
+     * 감정기록 공유 상태 변경
+     */
+    @Transactional
+    public EmotionResponse updateSharedStatus(Long userId, Long recordId, Boolean isShared) {
+        // 감정기록 조회
+        EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)
+                .orElseThrow(() -> new EmotionRecordNotFoundException("Emotion record not found"));
+
+        // 권한 확인 - 본인의 감정기록인지 체크
+        if (!emotionRecord.getUserId().equals(userId)) {
+            throw new ForbiddenAccessException("You do not have permission");
+        }
+
+        // 공유 상태 변경 (더티 체킹으로 자동 업데이트)
+        emotionRecord.updateSharedStatus(isShared);
+
+        // Response로 변환하여 반환
+        return EmotionResponse.from(emotionRecord);
+    }
+
+    /**
+     * 공유된 감정기록 목록 조회 (페이지네이션)
+     */
+    public List<EmotionListResponse> getSharedEmotionRecordList(int page, int size) {
+        // 페이지는 0부터 시작하므로 -1
+        Pageable pageable = PageRequest.of(page - 1, size);
+        
+        // 공유된 감정기록 조회 (최신순)
+        Page<EmotionRecord> emotionRecords = emotionRecordRepository
+                .findByIsSharedTrueOrderByCreatedAtDesc(pageable);
+        
+        // DTO로 변환
+        return emotionRecords.getContent().stream()
+                .map(EmotionListResponse::from)
+                .collect(Collectors.toList());
     }
 }
 
