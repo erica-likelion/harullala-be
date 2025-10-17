@@ -3,6 +3,7 @@ package likelion.harullala.service.impl;
 import likelion.harullala.domain.Character;
 import likelion.harullala.domain.User;
 import likelion.harullala.domain.UserCharacter;
+import likelion.harullala.dto.UpdateNicknameRequest;
 import likelion.harullala.repository.CharacterRepository;
 import likelion.harullala.repository.UserCharacterRepository;
 import likelion.harullala.repository.UserRepository;
@@ -44,5 +45,13 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Character not found"));
 
         userCharacter.updateCharacter(newCharacter);
+    }
+
+    @Override
+    @Transactional
+    public void updateNickname(Long userId, UpdateNicknameRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.updateNickname(request.getNickname());
     }
 }

@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -44,10 +46,18 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByProviderUserId(userInfo.id().toString())
                 .orElseGet(() -> {
+                    String connectCode;
+                    do {
+                        connectCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                    } while (userRepository.existsByConnectCode(connectCode));
+
                     User newUser = User.builder()
-                            .userName(userInfo.kakao_account().profile().nickname())
+                            .name(userInfo.kakao_account().profile().nickname())
+                            .nickname(userInfo.kakao_account().profile().nickname())
+                            .email(userInfo.kakao_account().email())
                             .providerUserId(userInfo.id().toString())
                             .provider(Provider.KAKAO)
+                            .connectCode(connectCode)
                             .build();
                     return userRepository.save(newUser);
                 });

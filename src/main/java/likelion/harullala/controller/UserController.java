@@ -4,6 +4,7 @@ import likelion.harullala.config.security.CustomUserDetails;
 import likelion.harullala.dto.ApiSuccess;
 import likelion.harullala.dto.MyInfoResponse;
 import likelion.harullala.dto.UpdateCharacterRequest;
+import likelion.harullala.dto.UpdateNicknameRequest;
 import likelion.harullala.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,6 +23,13 @@ public class UserController {
         MyInfoResponse myInfo = userService.getMyInfo(userId);
 
         return ApiSuccess.of(myInfo, "내 정보 조회가 성공했습니다.");
+    }
+
+    @PatchMapping("/me")
+    public ApiSuccess<?> updateNickname(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UpdateNicknameRequest request) {
+        Long userId = userDetails.getUser().getId();
+        userService.updateNickname(userId, request);
+        return ApiSuccess.of(null, "닉네임이 성공적으로 수정되었습니다.");
     }
 
     @PutMapping("/me/character")

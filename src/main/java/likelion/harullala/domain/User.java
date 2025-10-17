@@ -13,7 +13,8 @@ import java.util.List;
 @Entity @Table(name = "users",
         uniqueConstraints = {
                 @UniqueConstraint(name="uq_provider_identity", columnNames = {"provider", "provider_user_id"}),
-                @UniqueConstraint(name="uq_email_notnull", columnNames = {"email"}) // NULL은 중복 허용
+                @UniqueConstraint(name="uq_email_notnull", columnNames = {"email"}), // NULL은 중복 허용
+                @UniqueConstraint(name="uq_connect_code", columnNames = {"connect_code"})
         },
         indexes = {
                 @Index(name="idx_users_provider", columnList = "provider"),
@@ -26,8 +27,11 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "user_name", length = 100, nullable = false)
-    private String userName;
+    @Column(name = "name", length = 100, nullable = false)
+    private String name;
+
+    @Column(name = "nickname", length = 100, nullable = false)
+    private String nickname;
 
     @Column(name = "email", length = 255) // NULL 허용
     private String email;
@@ -38,6 +42,9 @@ public class User {
 
     @Column(name = "provider_user_id", nullable = false, length = 191)
     private String providerUserId;
+
+    @Column(name = "connect_code", nullable = false, unique = true, length = 10)
+    private String connectCode;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,5 +62,9 @@ public class User {
 
     public void updateRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
     }
 }
