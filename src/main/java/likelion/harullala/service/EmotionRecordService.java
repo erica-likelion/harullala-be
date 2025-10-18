@@ -29,12 +29,17 @@ public class EmotionRecordService {
 
     @Transactional
     public EmotionResponse createEmotionRecord(Long userId, EmotionCreateRequest request) {
-        // 감정 기록 엔티티 생성
+        // 감정 기록 엔티티 생성 (색상, 좌표, 감정명 포함)
         EmotionRecord emotionRecord = EmotionRecord.builder()
                 .userId(userId)
                 .record(request.getRecord())
                 .emojiEmotion(request.getEmoji_emotion())
-                .isShared(false)
+                .emotionName(request.getEmotion_name())
+                .mainColor(request.getMain_color())
+                .subColor(request.getSub_color())
+                .positionX(request.getPosition_x())
+                .positionY(request.getPosition_y())
+                .isShared(request.getIs_shared()) // 사용자가 선택한 공유 여부
                 .build();
 
         // 저장
@@ -93,7 +98,8 @@ public class EmotionRecordService {
         }
 
         // 감정기록 업데이트 (더티 체킹으로 자동 업데이트)
-        emotionRecord.update(request.getRecord(), request.getEmoji_emotion());
+        // 기존 메서드 사용 - 텍스트만 업데이트하는 경우가 많으므로
+        emotionRecord.updateRecord(request.getRecord());
 
         // Response로 변환하여 반환
         return EmotionUpdateResponse.from(emotionRecord);
@@ -113,11 +119,11 @@ public class EmotionRecordService {
             throw new ForbiddenAccessException("You do not have permission");
         }
 
-        // 실제 삭제
+        // 실제 삭제 (Hard Delete)
         emotionRecordRepository.delete(emotionRecord);
 
         // Response로 변환하여 반환
-        return EmotionDeleteResponse.from(emotionRecord);
+        return EmotionDeleteResponse.of(recordId);
     }
 
     /**

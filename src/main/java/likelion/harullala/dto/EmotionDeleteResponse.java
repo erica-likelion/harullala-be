@@ -12,10 +12,10 @@ public class EmotionDeleteResponse {
     private Long record_id;
     private Boolean is_deleted;
 
-    public static EmotionDeleteResponse from(EmotionRecord emotionRecord) {
+    public static EmotionDeleteResponse of(Long recordId) {
         return EmotionDeleteResponse.builder()
-                .record_id(emotionRecord.getRecordId())
-                .is_deleted(emotionRecord.getIsShared())
+                .record_id(recordId)
+                .is_deleted(true) // 삭제 완료를 의미
                 .build();
     }
 }
