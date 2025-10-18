@@ -15,6 +15,7 @@ public class EmotionListResponse {
     private Long record_id;
     private String record;
     private EmojiEmotion emoji_emotion;
+    private Boolean is_shared;
     private LocalDateTime created_at;
 
     public static EmotionListResponse from(EmotionRecord emotionRecord) {
@@ -22,6 +23,7 @@ public class EmotionListResponse {
                 .record_id(emotionRecord.getRecordId())
                 .record(emotionRecord.getRecord())
                 .emoji_emotion(emotionRecord.getEmojiEmotion())
+                .is_shared(emotionRecord.getIsShared())
                 .created_at(emotionRecord.getCreatedAt())
                 .build();
     }

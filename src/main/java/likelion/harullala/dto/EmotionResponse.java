@@ -16,7 +16,7 @@ public class EmotionResponse {
     private Long user_id;
     private String record;
     private EmojiEmotion emoji_emotion;
-    private Boolean is_deleted;
+    private Boolean is_shared;
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
 
@@ -26,7 +26,7 @@ public class EmotionResponse {
                 .user_id(emotionRecord.getUserId())
                 .record(emotionRecord.getRecord())
                 .emoji_emotion(emotionRecord.getEmojiEmotion())
-                .is_deleted(emotionRecord.getIsDeleted())
+                .is_shared(emotionRecord.getIsShared())
                 .created_at(emotionRecord.getCreatedAt())
                 .updated_at(emotionRecord.getUpdatedAt())
                 .build();
