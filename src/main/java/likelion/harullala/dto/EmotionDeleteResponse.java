@@ -15,9 +15,10 @@ public class EmotionDeleteResponse {
     public static EmotionDeleteResponse from(EmotionRecord emotionRecord) {
         return EmotionDeleteResponse.builder()
                 .record_id(emotionRecord.getRecordId())
-                .is_deleted(emotionRecord.getIsDeleted())
+                .is_deleted(emotionRecord.getIsShared())
                 .build();
     }
 }
+
 
 
