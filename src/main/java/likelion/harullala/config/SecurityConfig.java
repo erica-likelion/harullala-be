@@ -1,8 +1,5 @@
 package likelion.harullala.config;
 
-import likelion.harullala.config.security.JwtAuthenticationEntryPoint;
-import likelion.harullala.config.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,6 +7,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import likelion.harullala.config.security.JwtAuthenticationEntryPoint;
+import likelion.harullala.config.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +30,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/kakao/login",
                                 "/api/v1/auth/refresh",
-                                "/health", "/callback/**", "/kakao-test.html"
+                                "/health", "/callback/**", "/kakao-test.html",
+                                "/friend-test.html", "/test.html", "/h2-console/**",
+                                "/friend-management.html", "/friend-requests.html", "/friends-list.html",
+                                "/user1-friend-test.html", "/user2-friend-test.html",
+                                "/friend-test-unified.html",
+                                "/static/**", "/css/**", "/js/**", "/images/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
