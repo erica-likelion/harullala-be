@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import likelion.harullala.config.security.JwtAuthenticationEntryPoint;
 import likelion.harullala.config.security.JwtAuthenticationFilter;
@@ -27,19 +28,14 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/**",
-                                "/health", "/callback/**", "/kakao-test.html",
-                                "/friend-test.html", "/test.html", "/h2-console/**",
-                                "/friend-management.html", "/friend-requests.html", "/friends-list.html",
-                                "/user1-friend-test.html", "/user2-friend-test.html",
-                                "/friend-test-unified.html",
-                                "/friend-feed.html",
-                                "/static/**", "/css/**", "/js/**", "/images/**"
+                                "/api/v1/auth/kakao/login",
+                                "/api/v1/auth/refresh",
+                                "/health", "/callback/**", "/kakao-test.html"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );
 
-        // http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
