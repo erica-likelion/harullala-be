@@ -13,7 +13,6 @@ import likelion.harullala.repository.FeedReadStatusRepository;
 import likelion.harullala.repository.FriendshipRepository;
 import likelion.harullala.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -74,7 +73,7 @@ public class FriendFeedService {
                             .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
                     
                     boolean isRead = readRecordIds.contains(record.getRecordId());
-                    long readCount = feedReadStatusRepository.countByRecordId(record.getRecordId());
+                    long readCount = feedReadStatusRepository.countByEmotionRecord(record);
                     
                     return FriendFeedResponse.from(record, author.getNickname(), isRead, readCount);
                 })
@@ -103,9 +102,13 @@ public class FriendFeedService {
         User author = userRepository.findById(record.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
 
+        // 현재 사용자 조회
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
         // 읽음 상태 확인
-        boolean isRead = feedReadStatusRepository.existsByReaderIdAndRecordId(userId, recordId);
-        long readCount = feedReadStatusRepository.countByRecordId(recordId);
+        boolean isRead = feedReadStatusRepository.existsByReaderAndEmotionRecord(currentUser, record);
+        long readCount = feedReadStatusRepository.countByEmotionRecord(record);
 
         return FriendFeedResponse.from(record, author.getNickname(), isRead, readCount);
     }
@@ -129,15 +132,19 @@ public class FriendFeedService {
             throw new ForbiddenAccessException("친구의 기록만 읽을 수 있습니다.");
         }
 
+        // 현재 사용자 조회
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
         // 이미 읽었는지 확인
-        if (feedReadStatusRepository.existsByReaderIdAndRecordId(userId, request.getRecordId())) {
+        if (feedReadStatusRepository.existsByReaderAndEmotionRecord(currentUser, record)) {
             return; // 이미 읽었으면 아무것도 하지 않음
         }
 
         // 읽음 상태 저장
         FeedReadStatus readStatus = FeedReadStatus.builder()
-                .readerId(userId)
-                .recordId(request.getRecordId())
+                .reader(currentUser)
+                .emotionRecord(record)
                 .build();
 
         feedReadStatusRepository.save(readStatus);
