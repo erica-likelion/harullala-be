@@ -15,10 +15,11 @@ import likelion.harullala.config.security.CustomUserDetails;
 import likelion.harullala.dto.ApiSuccess;
 import likelion.harullala.dto.CancelFriendRequestDto;
 import likelion.harullala.dto.FriendInfoDto;
-import likelion.harullala.dto.FriendRequestInfoDto;
+import likelion.harullala.dto.ReceivedFriendRequestDto;
 import likelion.harullala.dto.RemoveFriendDto;
 import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
+import likelion.harullala.dto.SentFriendRequestDto;
 import likelion.harullala.service.FriendService;
 import lombok.RequiredArgsConstructor;
 
@@ -106,28 +107,28 @@ public class FriendController {
 
     /**
      * 받은 친구 요청 목록 조회
-     * GET /api/v1/friends/requests/received
+     * GET /api/v1/friends/request/received
      */
-    @GetMapping("/requests/received")
-    public ApiSuccess<List<FriendRequestInfoDto>> getReceivedFriendRequests(
+    @GetMapping("/request/received")
+    public ApiSuccess<List<ReceivedFriendRequestDto>> getReceivedFriendRequests(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Long userId = userDetails.getUser().getId();
-        List<FriendRequestInfoDto> requests = friendService.getReceivedFriendRequests(userId);
+        List<ReceivedFriendRequestDto> requests = friendService.getReceivedFriendRequests(userId);
         
         return ApiSuccess.of(requests, "받은 친구 요청 목록 조회가 성공했습니다.");
     }
 
     /**
      * 보낸 친구 요청 목록 조회
-     * GET /api/v1/friends/requests/sent
+     * GET /api/v1/friends/request/sent
      */
-    @GetMapping("/requests/sent")
-    public ApiSuccess<List<FriendRequestInfoDto>> getSentFriendRequests(
+    @GetMapping("/request/sent")
+    public ApiSuccess<List<SentFriendRequestDto>> getSentFriendRequests(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Long userId = userDetails.getUser().getId();
-        List<FriendRequestInfoDto> requests = friendService.getSentFriendRequests(userId);
+        List<SentFriendRequestDto> requests = friendService.getSentFriendRequests(userId);
         
         return ApiSuccess.of(requests, "보낸 친구 요청 목록 조회가 성공했습니다.");
     }

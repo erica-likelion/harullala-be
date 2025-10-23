@@ -16,7 +16,6 @@ import lombok.NoArgsConstructor;
 public class FriendFeedResponse {
 
     private Long recordId;
-    private Long userId;
     private String record;
     private EmojiEmotion emojiEmotion;
     private LocalDateTime createdAt;
@@ -27,7 +26,6 @@ public class FriendFeedResponse {
     public static FriendFeedResponse from(EmotionRecord emotionRecord, String authorNickname, boolean isRead, long readCount) {
         return FriendFeedResponse.builder()
                 .recordId(emotionRecord.getRecordId())
-                .userId(emotionRecord.getUserId())
                 .record(emotionRecord.getRecord())
                 .emojiEmotion(emotionRecord.getEmojiEmotion())
                 .createdAt(emotionRecord.getCreatedAt())

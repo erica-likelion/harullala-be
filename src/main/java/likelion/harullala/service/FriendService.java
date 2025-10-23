@@ -4,10 +4,11 @@ import java.util.List;
 
 import likelion.harullala.dto.CancelFriendRequestDto;
 import likelion.harullala.dto.FriendInfoDto;
-import likelion.harullala.dto.FriendRequestInfoDto;
+import likelion.harullala.dto.ReceivedFriendRequestDto;
 import likelion.harullala.dto.RemoveFriendDto;
 import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
+import likelion.harullala.dto.SentFriendRequestDto;
 
 public interface FriendService {
     
@@ -39,10 +40,10 @@ public interface FriendService {
     /**
      * 받은 친구 요청 목록 조회 (PENDING 상태)
      */
-    List<FriendRequestInfoDto> getReceivedFriendRequests(Long userId);
+    List<ReceivedFriendRequestDto> getReceivedFriendRequests(Long userId);
     
     /**
      * 보낸 친구 요청 목록 조회 (PENDING 상태)
      */
-    List<FriendRequestInfoDto> getSentFriendRequests(Long userId);
+    List<SentFriendRequestDto> getSentFriendRequests(Long userId);
 }

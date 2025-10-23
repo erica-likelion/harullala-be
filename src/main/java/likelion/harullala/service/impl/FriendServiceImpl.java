@@ -13,10 +13,11 @@ import likelion.harullala.domain.Friendship;
 import likelion.harullala.domain.User;
 import likelion.harullala.dto.CancelFriendRequestDto;
 import likelion.harullala.dto.FriendInfoDto;
-import likelion.harullala.dto.FriendRequestInfoDto;
+import likelion.harullala.dto.ReceivedFriendRequestDto;
 import likelion.harullala.dto.RemoveFriendDto;
 import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
+import likelion.harullala.dto.SentFriendRequestDto;
 import likelion.harullala.repository.FriendRequestRepository;
 import likelion.harullala.repository.FriendshipRepository;
 import likelion.harullala.repository.UserRepository;
@@ -38,15 +39,9 @@ public class FriendServiceImpl implements FriendService {
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new IllegalArgumentException("요청자를 찾을 수 없습니다."));
 
-        User receiver;
-        
-        // userId로 친구 요청하는 경우만 지원 (connectCode는 유저 팀원이 추가 예정)
-        if (requestDto.getUserId() != null) {
-            receiver = userRepository.findById(requestDto.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("받는 사람을 찾을 수 없습니다."));
-        } else {
-            throw new IllegalArgumentException("사용자 ID를 입력해주세요.");
-        }
+        // connectCode로 친구 요청 (User 팀원이 findByConnectCode 메서드 추가 시 작동)
+        User receiver = userRepository.findByConnectCode(requestDto.getConnectCode())
+                .orElseThrow(() -> new IllegalArgumentException("해당 초대 코드를 가진 사용자를 찾을 수 없습니다."));
 
         // 자기 자신에게 요청하는 경우 방지
         if (requester.getId().equals(receiver.getId())) {
@@ -206,7 +201,6 @@ public class FriendServiceImpl implements FriendService {
                     User friend = friendship.getUser1().getId().equals(userId) 
                             ? friendship.getUser2() : friendship.getUser1();
                     return new FriendInfoDto(
-                            friend.getId(),
                             friend.getNickname(),
                             friend.getConnectCode(),
                             friend.getName()
@@ -216,44 +210,34 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public List<FriendRequestInfoDto> getReceivedFriendRequests(Long userId) {
+    public List<ReceivedFriendRequestDto> getReceivedFriendRequests(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         List<FriendRequest> requests = friendRequestRepository.findPendingRequestsByReceiver(user);
 
         return requests.stream()
-                .map(request -> new FriendRequestInfoDto(
+                .map(request -> new ReceivedFriendRequestDto(
                         request.getId(),
-                        request.getRequester().getId(),
                         request.getRequester().getNickname(),
                         request.getRequester().getConnectCode(),
-                        request.getReceiver().getId(),
-                        request.getReceiver().getNickname(),
-                        request.getReceiver().getConnectCode(),
-                        request.getStatus().name(),
                         request.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<FriendRequestInfoDto> getSentFriendRequests(Long userId) {
+    public List<SentFriendRequestDto> getSentFriendRequests(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         List<FriendRequest> requests = friendRequestRepository.findPendingRequestsByRequester(user);
 
         return requests.stream()
-                .map(request -> new FriendRequestInfoDto(
+                .map(request -> new SentFriendRequestDto(
                         request.getId(),
-                        request.getRequester().getId(),
-                        request.getRequester().getNickname(),
-                        request.getRequester().getConnectCode(),
-                        request.getReceiver().getId(),
                         request.getReceiver().getNickname(),
                         request.getReceiver().getConnectCode(),
-                        request.getStatus().name(),
                         request.getCreatedAt()
                 ))
                 .collect(Collectors.toList());

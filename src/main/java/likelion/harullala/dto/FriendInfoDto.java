@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FriendInfoDto {
-    private Long userId;
     private String nickname;
     private String connectCode;
     private String name;
