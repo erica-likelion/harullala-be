@@ -15,8 +15,8 @@ public class SampleDataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // 샘플 테이블 생성 및 데이터 삽입
-        createSampleTables();
-        insertSampleData();
+        // createSampleTables();
+        // insertSampleData();
     }
     
     private void createSampleTables() {
@@ -29,8 +29,7 @@ public class SampleDataLoader implements CommandLineRunner {
                 password VARCHAR(255) NOT NULL,
                 provider VARCHAR(20) NOT NULL,
                 provider_user_id VARCHAR(255) NOT NULL,
-                create_date DATE NOT NULL,
-                character VARCHAR(20) NOT NULL
+                create_date DATE NOT NULL
             )
         """);
         
@@ -51,9 +50,9 @@ public class SampleDataLoader implements CommandLineRunner {
     private void insertSampleData() {
         // 샘플 사용자 데이터 (실제 ERD 구조에 맞게)
         jdbcTemplate.update("""
-            MERGE INTO users (user_id, user_name, email, password, provider, provider_user_id, create_date, character) VALUES 
-            (1, 'testuser', 'test@example.com', 'password123', 'KAKAO', 'kakao_123', CURRENT_DATE, 'T'),
-            (2, 'sampleuser', 'sample@example.com', 'password456', 'APPLE', 'apple_456', CURRENT_DATE, 'F')
+            MERGE INTO users (user_id, user_name, email, password, provider, provider_user_id, create_date) VALUES 
+            (1, 'testuser', 'test@example.com', 'password123', 'KAKAO', 'kakao_123', CURRENT_DATE),
+            (2, 'sampleuser', 'sample@example.com', 'password456', 'APPLE', 'apple_456', CURRENT_DATE)
         """);
         
         // 샘플 감정 기록 데이터 (실제 ERD 구조에 맞게)

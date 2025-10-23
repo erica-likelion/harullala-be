@@ -27,7 +27,7 @@ public class UserCharacter {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "character_id", nullable = false,
             foreignKey = @ForeignKey(name="fk_uc_character"))
-    private Character character;
+    private Character selectedCharacter;
 
     @Column(name = "is_active", nullable = false)
     private boolean active;              // 현재 사용중
@@ -37,6 +37,6 @@ public class UserCharacter {
     private LocalDateTime selectedAt;
 
     public void updateCharacter(Character newCharacter) {
-        this.character = newCharacter;
+        this.selectedCharacter = newCharacter;
     }
 }

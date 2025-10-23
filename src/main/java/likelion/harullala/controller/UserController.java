@@ -5,6 +5,7 @@ import likelion.harullala.dto.ApiSuccess;
 import likelion.harullala.dto.MyInfoResponse;
 import likelion.harullala.dto.UpdateCharacterRequest;
 import likelion.harullala.dto.UpdateNicknameRequest;
+import likelion.harullala.dto.UpdateProfileImageRequest;
 import likelion.harullala.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,5 +39,12 @@ public class UserController {
         userService.updateCharacter(userId, request.getCharacterId());
 
         return ApiSuccess.of(null, "캐릭터가 성공적으로 수정되었습니다.");
+    }
+
+    @PatchMapping("/me/profile-image")
+    public ApiSuccess<?> updateProfileImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody UpdateProfileImageRequest request) {
+        Long userId = userDetails.getUser().getId();
+        userService.updateProfileImage(userId, request);
+        return ApiSuccess.of(null, "프로필 이미지가 성공적으로 수정되었습니다.");
     }
 }

@@ -33,6 +33,9 @@ public class User {
     @Column(name = "nickname", length = 100, nullable = false)
     private String nickname;
 
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
     @Column(name = "email", length = 255) // NULL 허용
     private String email;
 
@@ -66,5 +69,9 @@ public class User {
 
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }
