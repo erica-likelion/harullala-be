@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         CharacterInfo characterInfo = userCharacterRepository.findByUserId(userId)
-                .map(userCharacter -> CharacterInfo.from(userCharacter.getCharacter()))
+                .map(userCharacter -> CharacterInfo.from(userCharacter.getSelectedCharacter()))
                 .orElse(null);
 
         return MyInfoResponse.of(user, characterInfo);
