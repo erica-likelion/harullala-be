@@ -2,7 +2,7 @@ package likelion.harullala.service;
 
 import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.domain.FeedReadStatus;
-import likelion.harullala.domain.Friendship;
+import likelion.harullala.domain.FriendRelationship;
 import likelion.harullala.domain.User;
 import likelion.harullala.dto.FriendFeedResponse;
 import likelion.harullala.dto.MarkFeedReadRequest;
@@ -10,7 +10,7 @@ import likelion.harullala.exception.EmotionRecordNotFoundException;
 import likelion.harullala.exception.ForbiddenAccessException;
 import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.repository.FeedReadStatusRepository;
-import likelion.harullala.repository.FriendshipRepository;
+import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +29,7 @@ public class FriendFeedService {
 
     private final EmotionRecordRepository emotionRecordRepository;
     private final FeedReadStatusRepository feedReadStatusRepository;
-    private final FriendshipRepository friendshipRepository;
+    private final FriendRelationshipRepository friendRelationshipRepository;
     private final UserRepository userRepository;
 
     /**
@@ -39,7 +39,7 @@ public class FriendFeedService {
         // 페이지는 0부터 시작하므로 -1
         Pageable pageable = PageRequest.of(page - 1, size);
         
-        // 사용자의 친구 목록 조회
+        // 사용자의 친구 목록 조회 (ACCEPTED 상태만)
         List<Long> friendIds = getFriendIds(userId);
         
         if (friendIds.isEmpty()) {
@@ -151,27 +151,21 @@ public class FriendFeedService {
     }
 
     /**
-     * 사용자의 친구 ID 목록 조회
+     * 사용자의 친구 ID 목록 조회 (ACCEPTED 상태만)
      */
     private List<Long> getFriendIds(Long userId) {
-        List<Friendship> friendships = friendshipRepository.findByUser1IdOrUser2Id(userId);
+        List<FriendRelationship> relationships = friendRelationshipRepository.findAcceptedFriendsByUserId(userId);
         
-        return friendships.stream()
-                .map(friendship -> {
-                    if (friendship.getUser1().getId().equals(userId)) {
-                        return friendship.getUser2().getId();
-                    } else {
-                        return friendship.getUser1().getId();
-                    }
-                })
+        return relationships.stream()
+                .map(relationship -> relationship.getOtherUserId(userId))
                 .collect(Collectors.toList());
     }
 
     /**
-     * 두 사용자가 친구인지 확인
+     * 두 사용자가 친구인지 확인 (ACCEPTED 상태만)
      */
     private boolean isFriend(Long userId1, Long userId2) {
-        return friendshipRepository.existsByUsers(
+        return friendRelationshipRepository.existsByUsersAndAccepted(
                 userRepository.findById(userId1).orElseThrow(),
                 userRepository.findById(userId2).orElseThrow()
         );

@@ -7,9 +7,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import likelion.harullala.domain.FriendRequest;
-import likelion.harullala.domain.FriendRequestStatus;
-import likelion.harullala.domain.Friendship;
+import likelion.harullala.domain.FriendRelationship;
+import likelion.harullala.domain.FriendStatus;
 import likelion.harullala.domain.User;
 import likelion.harullala.dto.CancelFriendRequestDto;
 import likelion.harullala.dto.FriendInfoDto;
@@ -18,8 +17,7 @@ import likelion.harullala.dto.RemoveFriendDto;
 import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
 import likelion.harullala.dto.SentFriendRequestDto;
-import likelion.harullala.repository.FriendRequestRepository;
-import likelion.harullala.repository.FriendshipRepository;
+import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
 import likelion.harullala.service.FriendService;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +27,7 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class FriendServiceImpl implements FriendService {
 
-    private final FriendRequestRepository friendRequestRepository;
-    private final FriendshipRepository friendshipRepository;
+    private final FriendRelationshipRepository friendRelationshipRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -48,127 +45,114 @@ public class FriendServiceImpl implements FriendService {
             throw new IllegalArgumentException("자기 자신에게 친구 요청을 보낼 수 없습니다.");
         }
 
-        // 친구 수 제한 확인 (최대 5명) - 먼저 확인
-        long currentFriendCount = friendshipRepository.countFriendsByUser(requester);
+        // 친구 수 제한 확인 (최대 5명)
+        long currentFriendCount = friendRelationshipRepository.countAcceptedFriendsByUser(requester);
         if (currentFriendCount >= 5) {
             throw new IllegalArgumentException("친구가 너무 많습니다. 최대 5명까지만 추가할 수 있습니다.");
         }
 
         // 받는 사람의 친구 수도 확인
-        long receiverFriendCount = friendshipRepository.countFriendsByUser(receiver);
+        long receiverFriendCount = friendRelationshipRepository.countAcceptedFriendsByUser(receiver);
         if (receiverFriendCount >= 5) {
             throw new IllegalArgumentException("상대방의 친구 목록이 가득 찼습니다.");
         }
 
-        // 이미 친구인지 확인
-        if (friendshipRepository.existsByUsers(requester, receiver)) {
+        // 이미 친구인지 확인 (ACCEPTED 상태)
+        if (friendRelationshipRepository.existsByUsersAndAccepted(requester, receiver)) {
             throw new IllegalArgumentException("이미 친구인 사용자입니다.");
         }
 
         // 이미 대기 중인 요청이 있는지 확인 (양방향 체크)
-        if (friendRequestRepository.existsByRequesterAndReceiverAndStatus(
-                requester, receiver, FriendRequestStatus.PENDING)) {
+        if (friendRelationshipRepository.existsPendingRequestByRequester(requester, receiver)) {
             throw new IllegalArgumentException("이미 해당 사용자에게 친구 요청을 보냈습니다.");
         }
         
-        if (friendRequestRepository.existsByRequesterAndReceiverAndStatus(
-                receiver, requester, FriendRequestStatus.PENDING)) {
+        if (friendRelationshipRepository.existsPendingRequestByRequester(receiver, requester)) {
             throw new IllegalArgumentException("해당 사용자가 이미 친구 요청을 보냈습니다. 받은 친구 요청을 확인해주세요.");
         }
-        
-        // 기존 요청이 있는지 확인하고 삭제 (ACCEPTED, REJECTED, CANCELLED 상태만)
-        Optional<FriendRequest> existingRequest = friendRequestRepository.findByRequesterAndReceiver(requester, receiver);
-        if (existingRequest.isPresent() && existingRequest.get().getStatus() != FriendRequestStatus.PENDING) {
-            friendRequestRepository.delete(existingRequest.get());
-        }
-        
-        // 반대 방향 요청도 확인하고 삭제 (ACCEPTED, REJECTED, CANCELLED 상태만)
-        Optional<FriendRequest> reverseRequest = friendRequestRepository.findByRequesterAndReceiver(receiver, requester);
-        if (reverseRequest.isPresent() && reverseRequest.get().getStatus() != FriendRequestStatus.PENDING) {
-            friendRequestRepository.delete(reverseRequest.get());
+
+        // 기존 관계가 있는지 확인하고 삭제 (PENDING이 아닌 경우)
+        Optional<FriendRelationship> existingRelationship = friendRelationshipRepository.findByUsers(requester, receiver);
+        if (existingRelationship.isPresent() && !existingRelationship.get().isPending()) {
+            friendRelationshipRepository.delete(existingRelationship.get());
         }
 
-        // 친구 요청 생성
-        FriendRequest friendRequest = FriendRequest.builder()
+        // user1 < user2 순서로 정규화
+        User user1 = requester.getId() < receiver.getId() ? requester : receiver;
+        User user2 = requester.getId() < receiver.getId() ? receiver : requester;
+
+        // 친구 관계 생성 (PENDING 상태)
+        FriendRelationship relationship = FriendRelationship.builder()
+                .user1(user1)
+                .user2(user2)
                 .requester(requester)
-                .receiver(receiver)
-                .status(FriendRequestStatus.PENDING)
+                .status(FriendStatus.PENDING)
                 .build();
 
-        friendRequestRepository.save(friendRequest);
+        friendRelationshipRepository.save(relationship);
     }
 
     @Override
     @Transactional
     public void respondToFriendRequest(Long receiverId, RespondToFriendRequestDto requestDto) {
-        FriendRequest friendRequest = friendRequestRepository.findById(requestDto.getRequestId())
+        FriendRelationship relationship = friendRelationshipRepository.findById(requestDto.getRequestId())
                 .orElseThrow(() -> new IllegalArgumentException("친구 요청을 찾을 수 없습니다."));
 
         // 요청을 받는 사람이 맞는지 확인
-        if (!friendRequest.getReceiver().getId().equals(receiverId)) {
+        if (!relationship.isReceiver(receiverId)) {
             throw new IllegalArgumentException("해당 친구 요청에 응답할 권한이 없습니다.");
         }
 
         // 대기 중인 요청인지 확인
-        if (!friendRequest.isPending()) {
+        if (!relationship.isPending()) {
             throw new IllegalArgumentException("이미 처리된 친구 요청입니다.");
         }
 
         if (requestDto.isAccept()) {
             // 친구 수 제한 확인 (수락하는 사람 기준)
-            long receiverFriendCount = friendshipRepository.countFriendsByUser(friendRequest.getReceiver());
+            User receiver = userRepository.findById(receiverId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            long receiverFriendCount = friendRelationshipRepository.countAcceptedFriendsByUser(receiver);
             if (receiverFriendCount >= 5) {
                 throw new IllegalArgumentException("친구가 너무 많습니다. 최대 5명까지만 추가할 수 있습니다.");
             }
 
             // 요청하는 사람의 친구 수도 확인
-            long requesterFriendCount = friendshipRepository.countFriendsByUser(friendRequest.getRequester());
+            long requesterFriendCount = friendRelationshipRepository.countAcceptedFriendsByUser(relationship.getRequester());
             if (requesterFriendCount >= 5) {
                 throw new IllegalArgumentException("상대방의 친구 목록이 가득 찼습니다.");
             }
 
-            // 친구 요청 수락
-            friendRequest.accept();
-            friendRequestRepository.save(friendRequest);
-
-            // 친구 관계 생성 (user1 < user2 순서로 저장)
-            User user1 = friendRequest.getRequester().getId() < friendRequest.getReceiver().getId() 
-                    ? friendRequest.getRequester() : friendRequest.getReceiver();
-            User user2 = friendRequest.getRequester().getId() < friendRequest.getReceiver().getId() 
-                    ? friendRequest.getReceiver() : friendRequest.getRequester();
-
-            Friendship friendship = Friendship.builder()
-                    .user1(user1)
-                    .user2(user2)
-                    .build();
-
-            friendshipRepository.save(friendship);
+            // 친구 요청 수락 (상태를 ACCEPTED로 변경)
+            relationship.accept();
+            friendRelationshipRepository.save(relationship);
         } else {
-            // 친구 요청 거절
-            friendRequest.reject();
-            friendRequestRepository.save(friendRequest);
+            // 친구 요청 거절 (상태를 REJECTED로 변경)
+            relationship.reject();
+            friendRelationshipRepository.save(relationship);
         }
     }
 
     @Override
     @Transactional
     public void cancelFriendRequest(Long requesterId, CancelFriendRequestDto requestDto) {
-        FriendRequest friendRequest = friendRequestRepository.findById(requestDto.getRequestId())
+        FriendRelationship relationship = friendRelationshipRepository.findById(requestDto.getRequestId())
                 .orElseThrow(() -> new IllegalArgumentException("친구 요청을 찾을 수 없습니다."));
 
         // 요청을 보낸 사람이 맞는지 확인
-        if (!friendRequest.getRequester().getId().equals(requesterId)) {
+        if (!relationship.isRequester(requesterId)) {
             throw new IllegalArgumentException("해당 친구 요청을 취소할 권한이 없습니다.");
         }
 
         // 대기 중인 요청인지 확인
-        if (!friendRequest.isPending()) {
+        if (!relationship.isPending()) {
             throw new IllegalArgumentException("이미 처리된 친구 요청입니다.");
         }
 
-        // 친구 요청 취소
-        friendRequest.cancel();
-        friendRequestRepository.save(friendRequest);
+        // 친구 요청 취소 (상태를 CANCELLED로 변경)
+        relationship.cancel();
+        friendRelationshipRepository.save(relationship);
     }
 
     @Override
@@ -180,12 +164,12 @@ public class FriendServiceImpl implements FriendService {
         User friend = userRepository.findById(requestDto.getFriendId())
                 .orElseThrow(() -> new IllegalArgumentException("친구를 찾을 수 없습니다."));
 
-        // 친구 관계가 존재하는지 확인
-        Friendship friendship = friendshipRepository.findByUsers(user, friend)
+        // 친구 관계가 존재하는지 확인 (ACCEPTED 상태)
+        FriendRelationship relationship = friendRelationshipRepository.findByUsersAndStatus(user, friend, FriendStatus.ACCEPTED)
                 .orElseThrow(() -> new IllegalArgumentException("친구 관계가 존재하지 않습니다."));
 
-        // 친구 관계 삭제
-        friendshipRepository.delete(friendship);
+        // 친구 관계 삭제 (물리적 삭제)
+        friendRelationshipRepository.delete(relationship);
     }
 
     @Override
@@ -193,13 +177,12 @@ public class FriendServiceImpl implements FriendService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        List<Friendship> friendships = friendshipRepository.findFriendsByUser(user);
+        List<FriendRelationship> relationships = friendRelationshipRepository.findAcceptedFriendsByUser(user);
 
-        return friendships.stream()
+        return relationships.stream()
                 .limit(5) // 최대 5명으로 제한
-                .map(friendship -> {
-                    User friend = friendship.getUser1().getId().equals(userId) 
-                            ? friendship.getUser2() : friendship.getUser1();
+                .map(relationship -> {
+                    User friend = relationship.getOtherUser(userId);
                     return new FriendInfoDto(
                             friend.getNickname(),
                             friend.getConnectCode(),
@@ -214,14 +197,14 @@ public class FriendServiceImpl implements FriendService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        List<FriendRequest> requests = friendRequestRepository.findPendingRequestsByReceiver(user);
+        List<FriendRelationship> relationships = friendRelationshipRepository.findPendingRequestsAsReceiver(user);
 
-        return requests.stream()
-                .map(request -> new ReceivedFriendRequestDto(
-                        request.getId(),
-                        request.getRequester().getNickname(),
-                        request.getRequester().getConnectCode(),
-                        request.getCreatedAt()
+        return relationships.stream()
+                .map(relationship -> new ReceivedFriendRequestDto(
+                        relationship.getId(),
+                        relationship.getRequester().getNickname(),
+                        relationship.getRequester().getConnectCode(),
+                        relationship.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
     }
@@ -231,15 +214,18 @@ public class FriendServiceImpl implements FriendService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        List<FriendRequest> requests = friendRequestRepository.findPendingRequestsByRequester(user);
+        List<FriendRelationship> relationships = friendRelationshipRepository.findPendingRequestsAsRequester(user);
 
-        return requests.stream()
-                .map(request -> new SentFriendRequestDto(
-                        request.getId(),
-                        request.getReceiver().getNickname(),
-                        request.getReceiver().getConnectCode(),
-                        request.getCreatedAt()
-                ))
+        return relationships.stream()
+                .map(relationship -> {
+                    User receiver = relationship.getOtherUser(userId);
+                    return new SentFriendRequestDto(
+                            relationship.getId(),
+                            receiver.getNickname(),
+                            receiver.getConnectCode(),
+                            relationship.getCreatedAt()
+                    );
+                })
                 .collect(Collectors.toList());
     }
 }
