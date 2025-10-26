@@ -33,14 +33,15 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(400, "Invalid request body", errors));
     }
 
-    /**
-     * API 예외 처리
-     */
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiResponse<Void>> handleApiException(ApiException e) {
         return ResponseEntity.status(e.getStatus())
                 .body(new ApiResponse<>(e.getStatus().value(), e.getMessage(), null));
     }
+
+    /**
+     * API 예외 처리
+     */
 
     /**
      * 감정기록을 찾을 수 없는 경우 (404)
