@@ -13,6 +13,7 @@ public class MyInfoResponse {
     private String email;
     private Provider provider;
     private String connectCode;
+    private String profileImageUrl;
     private CharacterInfo characterInfo;
 
 
@@ -23,6 +24,7 @@ public class MyInfoResponse {
                 user.getEmail(),
                 user.getProvider(),
                 user.getConnectCode(),
+                user.getProfileImageUrl(),
                 characterInfo
         );
     }

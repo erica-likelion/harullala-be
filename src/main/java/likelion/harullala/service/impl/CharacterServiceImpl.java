@@ -41,7 +41,7 @@ public class CharacterServiceImpl implements CharacterService {
 
         UserCharacter userCharacter = UserCharacter.builder()
                 .user(user)
-                .character(character)
+                .selectedCharacter(character)
                 .build();
 
         userCharacterRepository.save(userCharacter);
