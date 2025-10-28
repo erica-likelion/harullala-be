@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import likelion.harullala.domain.AiCharacter;
+import likelion.harullala.domain.Character;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -29,14 +29,14 @@ public class ChatGptClient {
     
     private final RestTemplate restTemplate = new RestTemplate();
     
-    public String generateFeedback(String emotionText, String emoji, AiCharacter aiCharacter) {
+    public String generateFeedback(String emotionText, String emoji, Character character) {
         if (apiKey == null || apiKey.isEmpty()) {
             // API 키가 없으면 기본 응답 반환
             return "오늘의 감정(" + emoji + ") 피드백: " + emotionText;
         }
         
         try {
-            String prompt = buildCharacterPrompt(emotionText, emoji, aiCharacter);
+            String prompt = buildCharacterPrompt(emotionText, emoji, character);
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -72,29 +72,37 @@ public class ChatGptClient {
         }
     }
     
-    private String buildCharacterPrompt(String emotionText, String emoji, AiCharacter aiCharacter) {
-        String characterPrompt = switch (aiCharacter) {
-            case T -> "당신은 논리적이고 분석적인 성격의 상담사입니다. 감정보다는 객관적이고 논리적인 관점에서 조언해주세요.";
-            case F -> "당신은 감정적이고 공감적인 성격의 상담사입니다. 사용자의 감정에 깊이 공감하고 따뜻한 마음으로 조언해주세요.";
-            case EMOTIONAL -> "당신은 감정을 풍부하게 표현하는 상담사입니다. 사용자의 감정을 함께 느끼고 감정적으로 소통해주세요.";
-            case COOL -> "당신은 냉철하고 객관적인 성격의 상담사입니다. 감정에 치우치지 않고 현실적이고 실용적인 조언을 해주세요.";
-        };
+    private String buildCharacterPrompt(String emotionText, String emoji, Character character) {
+        // Character 테이블의 description과 tag를 활용한 프롬프트 생성
+        String characterDescription = character.getDescription() != null 
+            ? character.getDescription() 
+            : "사용자의 감정을 공감하는 상담사입니다.";
+        
+        String characterTag = character.getTag() != null 
+            ? character.getTag() 
+            : "일반적";
+        
+        // 캐릭터 이름을 프롬프트에 포함 (더 개인화된 느낌)
+        String characterName = character.getName() != null 
+            ? character.getName() 
+            : "상담사";
         
         return String.format("""
-            %s
+            당신은 %s(%s) 캐릭터입니다.
+            캐릭터 성격: %s
             
-            사용자가 다음과 같은 감정을 기록했습니다:
+            사용자의 오늘 감정 기록:
             감정: %s
             내용: %s
             
-            이 감정 기록에 대해 위의 성격에 맞는 피드백을 한국어로 제공해주세요. 
-            사용자의 감정을 인정하고, 앞으로의 마음가짐에 도움이 되는 조언을 해주세요.
-            피드백은 2-3문장 정도로 간결하게 작성해주세요.
-            """, characterPrompt, emoji, emotionText);
-    }
-    
-    // 기존 메서드 유지 (하위 호환성)
-    public String generateFeedback(String emotionText, String emoji) {
-        return generateFeedback(emotionText, emoji, AiCharacter.F); // 기본값: F 캐릭터
+            위 캐릭터의 말투와 성격에 맞게 짧고 자연스럽게 반응해주세요.
+            장황하지 않게, 캐릭터가 직접 말하는 것처럼 대화 형식으로 답변해주세요.
+            
+            규칙:
+            - 캐릭터의 개성 있는 말투 사용
+            - 2-3문장 이내로 간결하게
+            - 감정을 인정하고 응원하는 톤
+            - 진정성 있고 따뜻한 느낌
+            """, characterName, characterTag, characterDescription, emoji, emotionText);
     }
 }
