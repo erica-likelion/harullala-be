@@ -139,10 +139,8 @@ public class FriendReminderService {
      * AI로 메시지 생성
      */
     private String generateWithAI(Character character, int friendCount, int recordedCount, boolean hasUnrecorded) {
-        String characterName = character != null ? character.getName() : "상담사";
-        String characterDescription = character != null && character.getDescription() != null
-                ? character.getDescription()
-                : "친절하고 공감적인 상담사";
+        String characterName = character.getName();
+        String characterDescription = character.getDescription();
         
         String prompt;
         
