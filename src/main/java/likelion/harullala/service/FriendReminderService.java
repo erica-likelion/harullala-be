@@ -13,8 +13,6 @@ import likelion.harullala.domain.CachedMessage;
 import likelion.harullala.domain.Character;
 import likelion.harullala.domain.FriendRelationship;
 import likelion.harullala.domain.UserCharacter;
-import likelion.harullala.dto.CharacterInfo;
-import likelion.harullala.dto.ReminderResponse;
 import likelion.harullala.infra.ChatGptClient;
 import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.repository.FriendRelationshipRepository;
@@ -36,20 +34,14 @@ public class FriendReminderService {
     /**
      * 친구 기록 리마인드 메시지 생성
      */
-    public ReminderResponse generateReminder(Long userId) {
+    public String generateReminder(Long userId) {
         // 1. 친구 목록 조회
         List<Long> friendIds = getFriendIds(userId);
         int totalFriends = friendIds.size();
         
         if (totalFriends == 0) {
             // 친구가 없으면 기본 메시지
-            return ReminderResponse.builder()
-                    .message("아직 친구가 없네! 친구를 추가해서 함께 기록해봐~")
-                    .totalFriends(0)
-                    .recordedFriends(0)
-                    .character(null)
-                    .hasUnrecorded(false)
-                    .build();
+            return "아직 친구가 없네! 친구를 추가해서 함께 기록해봐~";
         }
         
         // 2. 오늘 기록 작성한 친구 수 조회
@@ -76,14 +68,8 @@ public class FriendReminderService {
             cache.put(cacheKey, new CachedMessage(message, LocalDateTime.now()));
         }
         
-        // 8. 응답 생성
-        return ReminderResponse.builder()
-                .message(message)
-                .totalFriends(totalFriends)
-                .recordedFriends(recordedFriends)
-                .character(character != null ? CharacterInfo.from(character) : null)
-                .hasUnrecorded(hasUnrecorded)
-                .build();
+        // 8. 메시지 반환
+        return message;
     }
     
     /**
@@ -139,8 +125,10 @@ public class FriendReminderService {
      * AI로 메시지 생성
      */
     private String generateWithAI(Character character, int friendCount, int recordedCount, boolean hasUnrecorded) {
-        String characterName = character.getName();
-        String characterDescription = character.getDescription();
+        String characterName = character != null ? character.getName() : "상담사";
+        String characterDescription = character != null && character.getDescription() != null
+                ? character.getDescription()
+                : "친절하고 공감적인 상담사";
         
         String prompt;
         
@@ -150,7 +138,7 @@ public class FriendReminderService {
                 당신은 '%s' 캐릭터입니다.
                 캐릭터 성격: %s
                 
-                사용자에게 아직 친구가 없다는 것을 알려주고, 친구를 초대하면 더 재미있다는 것을 캐릭터의 말투로 한 줄로 격려하는 메시지를 작성해주세요.
+                사용자에게 아직 친구가 없다는 것을 알려주고, Pico World 친구를 초대하면 더 재미있고 5명까지 초대가 가능하다는 것을 캐릭터의 말투로 한 줄메시지를 작성해주세요.
                 (예: "아직 친구가 없네! 친구를 초대해서 함께 기록하면 더 재밌을 거야~")
                 """, characterName, characterDescription);
         } else if (hasUnrecorded) {
@@ -162,10 +150,10 @@ public class FriendReminderService {
                 
                 현재 상황: 친구 %d명 중 %d명이 아직 오늘 감정 기록을 작성하지 않았습니다.
                 
-                위 상황을 사용자에게 자연스럽게 알려주고, 친구들이 기록을 꼬박 쓰도록 격려하는 캐릭터의 말투로 한 줄 메시지를 작성해주세요.
+                위 상황을 사용자에게 자연스럽게 알려주고, 친구들이 기록을 꼬박 쓰도록 격려하는 캐릭터의 말투,성격으로 한 줄 메시지를 작성해주세요.
                 
                 올바른 예시:
-                - "친구들 중 아직 기록 안 한 사람이 있네! 꼬박 쓰라고 응원해줘~"
+                - "친구들 중 아직 기록 안 한 사람이 있네! 꼬박 쓰라고 해줘~"
                 - "몇 명이 아직 기록을 안 썼어! 우리 친구들 응원할까?"
                 - "친구들 기록 상태를 보니 아직 안 쓴 사람들이 있구나~ 격려해봐!"
                 

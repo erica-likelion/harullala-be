@@ -16,7 +16,6 @@ import likelion.harullala.dto.ApiSuccess;
 import likelion.harullala.dto.CancelFriendRequestDto;
 import likelion.harullala.dto.FriendInfoDto;
 import likelion.harullala.dto.ReceivedFriendRequestDto;
-import likelion.harullala.dto.ReminderResponse;
 import likelion.harullala.dto.RemoveFriendDto;
 import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
@@ -141,12 +140,12 @@ public class FriendController {
      * GET /api/v1/friends/reminder
      */
     @GetMapping("/reminder")
-    public ApiSuccess<ReminderResponse> getReminder(
+    public ApiSuccess<String> getReminder(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Long userId = userDetails.getUser().getId();
-        ReminderResponse response = friendReminderService.generateReminder(userId);
+        String message = friendReminderService.generateReminder(userId);
         
-        return ApiSuccess.of(response, "친구 리마인드 메시지 조회 성공");
+        return ApiSuccess.of(message, "친구 리마인드 메시지 조회 성공");
     }
 }
