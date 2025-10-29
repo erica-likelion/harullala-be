@@ -23,6 +23,9 @@ spring:
     api-key: ${KAKAO_RESTAPI_KEY}
     redirect_url: ${REDIRECT}
 
+  apple:
+    client-id: ${APPLE_CLIENT_ID}
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-validity-in-seconds: 3600 # 1시간
