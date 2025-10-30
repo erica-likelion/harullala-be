@@ -3,13 +3,11 @@ package likelion.harullala.service.impl;
 import likelion.harullala.domain.Character;
 import likelion.harullala.domain.User;
 import likelion.harullala.domain.UserCharacter;
-import likelion.harullala.dto.UpdateNicknameRequest;
-import likelion.harullala.dto.UpdateProfileImageRequest;
-import likelion.harullala.repository.CharacterRepository;
-import likelion.harullala.repository.UserCharacterRepository;
-import likelion.harullala.repository.UserRepository;
 import likelion.harullala.dto.CharacterInfo;
 import likelion.harullala.dto.MyInfoResponse;
+import likelion.harullala.dto.UpdateNicknameRequest;
+import likelion.harullala.dto.UpdateProfileImageRequest;
+import likelion.harullala.repository.*;
 import likelion.harullala.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +21,11 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserCharacterRepository userCharacterRepository;
     private final CharacterRepository characterRepository;
+    private final AiFeedbackRepository aiFeedbackRepository;
+    private final EmotionRecordRepository emotionRecordRepository;
+    private final FeedReadStatusRepository feedReadStatusRepository;
+    private final FriendRelationshipRepository friendRelationshipRepository;
+
 
     @Override
     public MyInfoResponse getMyInfo(Long userId) {
@@ -62,5 +65,21 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         user.updateProfileImageUrl(request.getProfileImageUrl());
+    }
+
+    @Override
+    @Transactional
+    public void withdraw(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Delete related data
+        feedReadStatusRepository.deleteAllByReader_Id(userId);
+        friendRelationshipRepository.deleteAllByUserId(userId);
+        aiFeedbackRepository.deleteAllByUserId(userId);
+        emotionRecordRepository.deleteAllByUserId(userId);
+
+        // Delete the user
+        userRepository.delete(user);
     }
 }

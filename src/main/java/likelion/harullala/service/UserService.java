@@ -9,4 +9,5 @@ public interface UserService {
     void updateCharacter(Long userId, Long newCharacterId);
     void updateNickname(Long userId, UpdateNicknameRequest request);
     void updateProfileImage(Long userId, UpdateProfileImageRequest request);
+    void withdraw(Long userId);
 }

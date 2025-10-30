@@ -183,9 +183,34 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = jwtUtil.generateAccessToken(user.getId());
         String newRefreshToken = jwtUtil.generateRefreshToken(user.getId());
 
-        user.updateRefreshToken(newRefreshToken);
-        userRepository.save(user);
+                user.updateRefreshToken(newRefreshToken);
 
-        return TokenRefreshResponse.of(newAccessToken, newRefreshToken);
-    }
-}
+                userRepository.save(user);
+
+        
+
+                return TokenRefreshResponse.of(newAccessToken, newRefreshToken);
+
+            }
+
+        
+
+            @Override
+
+            @Transactional
+
+            public void logout(Long userId) {
+
+                User user = userRepository.findById(userId)
+
+                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+                user.updateRefreshToken(null);
+
+                userRepository.save(user);
+
+            }
+
+        }
+
+        
