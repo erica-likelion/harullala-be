@@ -73,19 +73,10 @@ public class ChatGptClient {
     }
     
     private String buildCharacterPrompt(String emotionText, String emoji, Character character) {
-        // Character 테이블의 description과 tag를 활용한 프롬프트 생성
-        String characterDescription = character.getDescription() != null 
-            ? character.getDescription() 
-            : "사용자의 감정을 공감하는 상담사입니다.";
-        
-        String characterTag = character.getTag() != null 
-            ? character.getTag() 
-            : "일반적";
-        
-        // 캐릭터 이름을 프롬프트에 포함 (더 개인화된 느낌)
-        String characterName = character.getName() != null 
-            ? character.getName() 
-            : "상담사";
+        // Character 엔티티의 정보 직접 사용 (null 체크 제거 - 모든 유저는 캐릭터 선택함)
+        String characterDescription = character.getDescription();
+        String characterTag = character.getTag();
+        String characterName = character.getName();
         
         return String.format("""
             당신은 %s(%s) 캐릭터입니다.
@@ -104,5 +95,46 @@ public class ChatGptClient {
             - 감정을 인정하고 응원하는 톤
             - 진정성 있고 따뜻한 느낌
             """, characterName, characterTag, characterDescription, emoji, emotionText);
+    }
+    
+    /**
+     * 커스텀 프롬프트로 AI 메시지 생성
+     */
+    public String generateCustomFeedback(String customPrompt) {
+        if (apiKey == null || apiKey.isEmpty()) {
+            return "AI 서비스를 사용할 수 없습니다.";
+        }
+        
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+            
+            Map<String, Object> requestBody = Map.of(
+                "model", model,
+                "messages", List.of(
+                    Map.of("role", "user", "content", customPrompt)
+                ),
+                "max_tokens", 200,
+                "temperature", 0.7
+            );
+            
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, request, Map.class);
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                if (!choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    return (String) message.get("content");
+                }
+            }
+            
+            return "메시지를 생성할 수 없습니다.";
+            
+        } catch (Exception e) {
+            return "AI 서비스 오류가 발생했습니다.";
+        }
     }
 }
