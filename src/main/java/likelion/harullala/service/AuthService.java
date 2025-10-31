@@ -6,4 +6,5 @@ public interface AuthService {
     AuthResponse kakaoLogin(KakaoLoginReq req);
     AuthResponse appleLogin(AppleLoginRequest req);
     TokenRefreshResponse refresh(TokenRefreshRequest request);
+    void logout(Long userId);
 }
