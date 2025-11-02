@@ -110,7 +110,7 @@ public class FriendReminderService {
      */
     private Character getCurrentCharacter(Long userId) {
         return userCharacterRepo.findByUserId(userId)
-                .map(UserCharacter::getCharacter)
+                .map(UserCharacter::getSelectedCharacter)
                 .orElse(null);
     }
     
