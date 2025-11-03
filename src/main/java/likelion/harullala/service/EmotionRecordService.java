@@ -1,6 +1,9 @@
 package likelion.harullala.service;
 
 import likelion.harullala.domain.EmotionRecord;
+import likelion.harullala.domain.FriendRelationship;
+import likelion.harullala.domain.NotificationType;
+import likelion.harullala.domain.User;
 import likelion.harullala.dto.EmotionCreateRequest;
 import likelion.harullala.dto.EmotionDeleteResponse;
 import likelion.harullala.dto.EmotionListResponse;
@@ -10,6 +13,8 @@ import likelion.harullala.dto.EmotionUpdateResponse;
 import likelion.harullala.exception.EmotionRecordNotFoundException;
 import likelion.harullala.exception.ForbiddenAccessException;
 import likelion.harullala.repository.EmotionRecordRepository;
+import likelion.harullala.repository.FriendRelationshipRepository;
+import likelion.harullala.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +31,9 @@ import java.util.stream.Collectors;
 public class EmotionRecordService {
 
     private final EmotionRecordRepository emotionRecordRepository;
+    private final FriendRelationshipRepository friendRelationshipRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public EmotionResponse createEmotionRecord(Long userId, EmotionCreateRequest request) {
@@ -45,8 +53,46 @@ public class EmotionRecordService {
         // 저장
         EmotionRecord savedRecord = emotionRecordRepository.save(emotionRecord);
 
+        // 친구들에게 알림 발송
+        try {
+            sendFriendNotifications(userId, savedRecord.getRecordId());
+        } catch (Exception e) {
+            // 알림 전송 실패해도 감정 기록 생성은 정상 처리
+        }
+
         // Response로 변환하여 반환
         return EmotionResponse.from(savedRecord);
+    }
+
+    /**
+     * 친구들에게 감정 기록 알림 발송
+     */
+    private void sendFriendNotifications(Long userId, Long recordId) {
+        // 사용자 정보 조회
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return;
+        }
+
+        // 친구 목록 조회
+        List<FriendRelationship> friendships = friendRelationshipRepository.findAcceptedFriendsByUserId(userId);
+
+        // 각 친구에게 알림 발송
+        for (FriendRelationship friendship : friendships) {
+            Long friendId = friendship.getOtherUserId(userId);
+            
+            try {
+                notificationService.sendNotification(
+                    friendId,
+                    NotificationType.FRIEND_EMOTION_RECORD,
+                    "친구가 감정 기록을 작성했어요",
+                    user.getNickname() + "님이 오늘의 감정을 기록했어요",
+                    recordId
+                );
+            } catch (Exception e) {
+                // 개별 알림 실패는 로그만 남기고 계속 진행
+            }
+        }
     }
 
     /**

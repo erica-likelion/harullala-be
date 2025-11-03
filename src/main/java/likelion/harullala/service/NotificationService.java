@@ -57,11 +57,13 @@ public class NotificationService {
         log.info("알림 저장 완료: userId={}, type={}, title={}", userId, type, title);
 
         // 2. FCM 푸시 전송
-        if (user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
-            sendFcmNotification(user.getFcmToken(), type, title, message, relatedId);
-        } else {
-            log.warn("FCM 토큰이 없습니다. userId={}", userId);
-        }
+        // TODO: User 엔티티에 fcmToken 필드 추가 후 활성화
+        // if (user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
+        //     sendFcmNotification(user.getFcmToken(), type, title, message, relatedId);
+        // } else {
+        //     log.warn("FCM 토큰이 없습니다. userId={}", userId);
+        // }
+        log.info("FCM 푸시는 User 엔티티 fcmToken 필드 추가 후 활성화 예정");
     }
 
     /**
@@ -176,15 +178,17 @@ public class NotificationService {
 
     /**
      * FCM 토큰 등록
+     * TODO: User 엔티티에 fcmToken 필드와 updateFcmToken 메서드 추가 후 활성화
      */
     @Transactional
     public void registerFcmToken(Long userId, String fcmToken) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        user.updateFcmToken(fcmToken);
-        userRepository.save(user);
-        log.info("FCM 토큰 등록 완료: userId={}", userId);
+        // TODO: User 엔티티 수정 후 주석 해제
+        // user.updateFcmToken(fcmToken);
+        // userRepository.save(user);
+        log.warn("FCM 토큰 등록 기능은 User 엔티티 fcmToken 필드 추가 후 사용 가능합니다. userId={}", userId);
     }
 
     /**
