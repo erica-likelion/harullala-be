@@ -33,3 +33,7 @@ openai:
     key: ${OPENAI_API_KEY:}
     url: https://api.openai.com/v1/chat/completions
     model: gpt-3.5-turbo # Default model, can be overridden by user
+
+# Firebase 설정
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:classpath:firebase-service-account.json}
