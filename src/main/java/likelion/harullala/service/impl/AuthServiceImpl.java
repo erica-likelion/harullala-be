@@ -60,11 +60,11 @@ public class AuthServiceImpl implements AuthService {
                 .orElseGet(() -> {
                     String connectCode;
                     do {
-                        connectCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                        connectCode = generateConnectCode();
                     } while (userRepository.existsByConnectCode(connectCode));
 
                     User newUser = User.builder()
-                            .email(userInfo.kakao_account().email())
+                            .email(userInfo.kakao_account() != null ? userInfo.kakao_account().email() : null)
                             .providerUserId(userInfo.id().toString())
                             .provider(Provider.KAKAO)
                             .connectCode(connectCode)
@@ -94,7 +94,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseGet(() -> {
                     String connectCode;
                     do {
-                        connectCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                        connectCode = generateConnectCode();
                     } while (userRepository.existsByConnectCode(connectCode));
 
                     User newUser = User.builder()
@@ -115,6 +115,17 @@ public class AuthServiceImpl implements AuthService {
         boolean isOnboardingNeeded = !userCharacterRepository.existsByUserId(user.getId());
 
         return AuthResponse.of(accessToken, refreshToken, isOnboardingNeeded);
+    }
+
+    private String generateConnectCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        int length = 8;
+        java.util.Random random = new java.util.Random();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 
     private Claims verifyAndGetClaims(String identityToken) {
@@ -174,34 +185,21 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = jwtUtil.generateAccessToken(user.getId());
         String newRefreshToken = jwtUtil.generateRefreshToken(user.getId());
 
-                user.updateRefreshToken(newRefreshToken);
+        user.updateRefreshToken(newRefreshToken);
+        userRepository.save(user);
 
-                userRepository.save(user);
+        return TokenRefreshResponse.of(newAccessToken, newRefreshToken);
+    }
 
-        
+    @Override
+    @Transactional
+    public void logout(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.updateRefreshToken(null);
+        userRepository.save(user);
+    }
+}
 
-                return TokenRefreshResponse.of(newAccessToken, newRefreshToken);
-
-            }
-
-        
-
-            @Override
-
-            @Transactional
-
-            public void logout(Long userId) {
-
-                User user = userRepository.findById(userId)
-
-                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-                user.updateRefreshToken(null);
-
-                userRepository.save(user);
-
-            }
-
-        }
 
         
