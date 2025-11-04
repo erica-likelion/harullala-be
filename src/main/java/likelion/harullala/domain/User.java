@@ -27,10 +27,7 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(name = "name", length = 100, nullable = false)
-    private String name;
-
-    @Column(name = "nickname", length = 100, nullable = false)
+    @Column(name = "nickname", length = 100)
     private String nickname;
 
     @Column(name = "profile_image_url")

@@ -54,14 +54,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse kakaoLogin(KakaoLoginReq req) {
-        KakaoAuthClient.KakaoTokenResponse tokenResponse = kakaoAuthClient.getToken(
-                "authorization_code",
-                kakaoApiKey,
-                req.redirectUri(),
-                req.authorizationCode()
-        );
-
-        KakaoApiClient.KakaoUserInfo userInfo = kakaoApiClient.getUserInfo("Bearer " + tokenResponse.access_token());
+        KakaoApiClient.KakaoUserInfo userInfo = kakaoApiClient.getUserInfo("Bearer " + req.kakaoAccessToken());
 
         User user = userRepository.findByProviderUserId(userInfo.id().toString())
                 .orElseGet(() -> {
@@ -71,8 +64,6 @@ public class AuthServiceImpl implements AuthService {
                     } while (userRepository.existsByConnectCode(connectCode));
 
                     User newUser = User.builder()
-                            .name(userInfo.kakao_account().profile().nickname())
-                            .nickname(userInfo.kakao_account().profile().nickname())
                             .email(userInfo.kakao_account().email())
                             .providerUserId(userInfo.id().toString())
                             .provider(Provider.KAKAO)
