@@ -35,7 +35,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/auth/kakao/login",
+                                "/api/v1/auth/apple/login",
                                 "/api/v1/auth/refresh",
+                                "/api/v1/auth/logout",
                                 "/health", "/callback/**", "/kakao-test.html"
                         ).permitAll()
                         .anyRequest().authenticated()
