@@ -70,16 +70,17 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void withdraw(Long userId) {
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // Delete related data
+        userCharacterRepository.deleteAllByUserId(userId);
         feedReadStatusRepository.deleteAllByReader_Id(userId);
         friendRelationshipRepository.deleteAllByUserId(userId);
         aiFeedbackRepository.deleteAllByUserId(userId);
         emotionRecordRepository.deleteAllByUserId(userId);
 
         // Delete the user
-        userRepository.delete(user);
+        userRepository.deleteById(userId);
     }
 }
