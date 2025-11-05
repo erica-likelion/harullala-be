@@ -1,6 +1,7 @@
 package likelion.harullala.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -131,7 +132,8 @@ public class AuthServiceImpl implements AuthService {
     private Claims verifyAndGetClaims(String identityToken) {
         try {
             String headerOfIdentityToken = identityToken.substring(0, identityToken.indexOf("."));
-            Map<String, String> header = new ObjectMapper().readValue(new String(Base64.getDecoder().decode(headerOfIdentityToken), StandardCharsets.UTF_8), Map.class);
+            Map<String, String> header = new ObjectMapper().readValue(new String(Base64.getDecoder().decode(headerOfIdentityToken), StandardCharsets.UTF_8),
+                    new TypeReference<>() {});
 
             AppleAuthClient.ApplePublicKeysResponse publicKeys = appleAuthClient.getPublicKeys();
             AppleAuthClient.ApplePublicKey publicKey = publicKeys.keys().stream()
