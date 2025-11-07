@@ -73,17 +73,15 @@ public class NotificationController {
 
     /**
      * 현재 인증된 사용자 ID 가져오기
-     * TODO: 실제 인증 시스템과 연동 필요
      */
     private Long getCurrentUserId() {
-        // 임시로 하드코딩 (실제로는 SecurityContext에서 가져와야 함)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() 
-                && !authentication.getPrincipal().equals("anonymousUser")) {
-            // 실제 구현에서는 CustomUserDetails에서 userId를 가져옴
-            return 1L; // 임시
+        if (authentication != null && authentication.getPrincipal() instanceof likelion.harullala.config.security.CustomUserDetails) {
+            likelion.harullala.config.security.CustomUserDetails userDetails = 
+                (likelion.harullala.config.security.CustomUserDetails) authentication.getPrincipal();
+            return userDetails.getUser().getId();
         }
-        return 1L; // 임시
+        throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
     }
 }
 
