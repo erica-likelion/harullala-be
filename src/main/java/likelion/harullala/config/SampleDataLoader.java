@@ -15,8 +15,8 @@ public class SampleDataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // 샘플 테이블 생성 및 데이터 삽입
-        createSampleTables();
-        insertSampleData();
+        //createSampleTables();
+        //insertSampleData();
     }
     
     private void createSampleTables() {

@@ -47,4 +47,11 @@ public class UserController {
         userService.updateProfileImage(userId, request);
         return ApiSuccess.of(null, "프로필 이미지가 성공적으로 수정되었습니다.");
     }
+
+    @DeleteMapping("/me")
+    public ApiSuccess<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        userService.withdraw(userId);
+        return ApiSuccess.of(null, "회원 탈퇴가 성공적으로 처리되었습니다.");
+    }
 }
