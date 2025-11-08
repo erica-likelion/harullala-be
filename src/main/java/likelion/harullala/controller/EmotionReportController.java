@@ -1,6 +1,7 @@
 package likelion.harullala.controller;
 
 import likelion.harullala.dto.ApiResponse;
+import likelion.harullala.dto.EmotionReportCharacterMessageResponse;
 import likelion.harullala.dto.EmotionReportComparisonResponse;
 import likelion.harullala.dto.EmotionReportTopEmotionsResponse;
 import likelion.harullala.dto.EmotionReportTimePatternResponse;
@@ -151,6 +152,38 @@ public class EmotionReportController {
                 .body(ApiResponse.success(
                         200,
                         "시간대별 감정 패턴 조회 성공",
+                        response
+                ));
+    }
+
+    /**
+     * 캐릭터 멘트 생성 API
+     * POST /api/v1/emotion/report/character-message?month=2024-01
+     * 
+     * 화면: 캐릭터의 말
+     * - 리포트 데이터를 바탕으로 캐릭터가 응원하는 멘트 생성
+     * - 월 3회 제한
+     * 
+     * @param month 대상 월 (yyyy-MM 형식, 생략 시 현재 월)
+     * @param authorizationHeader JWT 토큰
+     * @return 캐릭터 멘트
+     */
+    @PostMapping("/character-message")
+    public ResponseEntity<ApiResponse<EmotionReportCharacterMessageResponse>> generateCharacterMessage(
+            @RequestParam(required = false) String month,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        // TODO: JWT 토큰에서 userId 추출
+        Long userId = 1L;
+
+        EmotionReportCharacterMessageResponse response = 
+                emotionReportService.generateCharacterMessage(userId, month);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(
+                        200,
+                        "캐릭터 멘트 생성 성공",
                         response
                 ));
     }

@@ -1,15 +1,23 @@
 package likelion.harullala.service;
 
+import likelion.harullala.domain.Character;
 import likelion.harullala.domain.EmotionRecord;
+import likelion.harullala.domain.UserCharacter;
+import likelion.harullala.dto.EmotionReportCharacterMessageResponse;
 import likelion.harullala.dto.EmotionReportComparisonResponse;
 import likelion.harullala.dto.EmotionReportTopEmotionsResponse;
 import likelion.harullala.dto.EmotionReportTimePatternResponse;
+import likelion.harullala.infra.ChatGptClient;
 import likelion.harullala.repository.EmotionRecordRepository;
+import likelion.harullala.repository.UserCharacterRepository;
 import likelion.harullala.util.EmotionCoordinateMapper;
 import likelion.harullala.util.EmotionCoordinateMapper.Coordinate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import likelion.harullala.exception.ApiException;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -26,7 +34,11 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class EmotionReportService {
 
+    private static final int MESSAGE_LIMIT = 3; // 캐릭터 멘트 생성 제한 (월 3회)
+
     private final EmotionRecordRepository emotionRecordRepository;
+    private final UserCharacterRepository userCharacterRepository;
+    private final ChatGptClient chatGptClient;
 
     /**
      * 저번 달과 이번 달 감정 상태 비교
@@ -328,6 +340,84 @@ public class EmotionReportService {
         // "낮 (12:00-18:00)" -> "낮"
         int index = timeRangeLabel.indexOf(" ");
         return index > 0 ? timeRangeLabel.substring(0, index) : timeRangeLabel;
+    }
+
+    /**
+     * 캐릭터 멘트 생성
+     * @param userId 사용자 ID
+     * @param targetMonth 대상 월 (예: "2024-01", null이면 현재 월)
+     * @return 캐릭터 멘트 응답
+     */
+    @Transactional
+    public EmotionReportCharacterMessageResponse generateCharacterMessage(Long userId, String targetMonth) {
+        // 대상 월 설정
+        YearMonth month = targetMonth != null 
+                ? YearMonth.parse(targetMonth, DateTimeFormatter.ofPattern("yyyy-MM"))
+                : YearMonth.now();
+
+        // 사용자의 활성 캐릭터 조회
+        UserCharacter userCharacter = userCharacterRepository.findActiveByUserId(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "활성 캐릭터를 찾을 수 없습니다."));
+        
+        Character character = userCharacter.getSelectedCharacter();
+
+        // 리포트 데이터 조회
+        EmotionReportTopEmotionsResponse topEmotions = getTopEmotions(userId, targetMonth);
+        EmotionReportTimePatternResponse timePattern = getTimePattern(userId, targetMonth);
+
+        // 리포트 요약 텍스트 생성
+        String reportSummary = buildReportSummary(topEmotions, timePattern, month);
+
+        // AI로 캐릭터 멘트 생성
+        String message = chatGptClient.generateReportMessage(reportSummary, character);
+
+        // TODO: 월별 생성 횟수 제한 구현 (현재는 임시로 1/3으로 설정)
+        // 실제로는 ReportMessage 엔티티를 만들어서 월별 생성 횟수를 저장하고 관리해야 함
+        int attemptsUsed = 1;
+
+        return EmotionReportCharacterMessageResponse.builder()
+                .character_name(character.getName())
+                .character_image_url(character.getImageUrl())
+                .message(message)
+                .attempts_used(attemptsUsed)
+                .attempts_remaining(Math.max(0, MESSAGE_LIMIT - attemptsUsed))
+                .attempts_total(MESSAGE_LIMIT)
+                .build();
+    }
+
+    /**
+     * 리포트 요약 텍스트 생성
+     */
+    private String buildReportSummary(
+            EmotionReportTopEmotionsResponse topEmotions,
+            EmotionReportTimePatternResponse timePattern,
+            YearMonth month) {
+        
+        StringBuilder summary = new StringBuilder();
+        summary.append(month.format(DateTimeFormatter.ofPattern("yyyy년 M월"))).append(" 감정 리포트\n\n");
+        
+        // 전체 기록 수
+        summary.append("총 ").append(topEmotions.getTotal_count()).append("번의 감정 기록\n\n");
+        
+        // 가장 많았던 감정 (Top 3)
+        summary.append("가장 많았던 감정:\n");
+        List<EmotionReportTopEmotionsResponse.EmotionStat> emotions = topEmotions.getEmotions();
+        int topCount = Math.min(3, emotions.size());
+        for (int i = 0; i < topCount; i++) {
+            EmotionReportTopEmotionsResponse.EmotionStat emotion = emotions.get(i);
+            summary.append(i + 1).append(". ")
+                   .append(emotion.getEmotion_name())
+                   .append(" - ")
+                   .append(emotion.getCount()).append("번 (")
+                   .append(emotion.getPercentage()).append("%)\n");
+        }
+        
+        // 시간대 패턴
+        summary.append("\n시간대별 패턴:\n");
+        summary.append("가장 많이 기록한 시간대: ").append(timePattern.getDominant_time()).append("\n");
+        summary.append("그 시간대의 주요 감정: ").append(timePattern.getDominant_emotion()).append("\n");
+        
+        return summary.toString();
     }
 }
 

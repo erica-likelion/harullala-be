@@ -74,7 +74,7 @@ public class EmotionCoordinateMapper {
         EMOTION_COORDINATES.put("황홀한", new Coordinate(1.0, 0.17));
         
         // ========== 7행: 완전 편안한 (Y=0.0) ==========
-        EMOTION_COORDINATES.put("차로운", new Coordinate(0.0, 0.0));
+        EMOTION_COORDINATES.put("무기력한", new Coordinate(0.0, 0.0));
         EMOTION_COORDINATES.put("온전한", new Coordinate(0.17, 0.0));
         EMOTION_COORDINATES.put("가벼운", new Coordinate(0.33, 0.0));
         EMOTION_COORDINATES.put("편안한", new Coordinate(0.5, 0.0));
