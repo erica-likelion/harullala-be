@@ -3,6 +3,7 @@ package likelion.harullala.controller;
 import likelion.harullala.dto.ApiResponse;
 import likelion.harullala.dto.EmotionReportComparisonResponse;
 import likelion.harullala.dto.EmotionReportTopEmotionsResponse;
+import likelion.harullala.dto.EmotionReportTimePatternResponse;
 import likelion.harullala.service.EmotionReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -119,6 +120,38 @@ public class EmotionReportController {
                         200,
                         "리포트 요약 조회 성공",
                         summary
+                ));
+    }
+
+    /**
+     * 시간대별 감정 패턴 분석 API
+     * GET /api/v1/emotion/report/time-pattern?month=2024-01
+     * 
+     * 화면: 특정 상태가 많았던 시간대
+     * - 4개 시간대(새벽, 아침, 낮, 저녁)별 통계
+     * - 가장 많이 기록한 시간대와 주요 감정 표시
+     * 
+     * @param month 대상 월 (yyyy-MM 형식, 생략 시 현재 월)
+     * @param authorizationHeader JWT 토큰
+     * @return 시간대별 감정 패턴
+     */
+    @GetMapping("/time-pattern")
+    public ResponseEntity<ApiResponse<EmotionReportTimePatternResponse>> getTimePattern(
+            @RequestParam(required = false) String month,
+            @RequestHeader("Authorization") String authorizationHeader
+    ) {
+        // TODO: JWT 토큰에서 userId 추출
+        Long userId = 1L;
+
+        EmotionReportTimePatternResponse response = 
+                emotionReportService.getTimePattern(userId, month);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(
+                        200,
+                        "시간대별 감정 패턴 조회 성공",
+                        response
                 ));
     }
 

@@ -3,6 +3,7 @@ package likelion.harullala.service;
 import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.dto.EmotionReportComparisonResponse;
 import likelion.harullala.dto.EmotionReportTopEmotionsResponse;
+import likelion.harullala.dto.EmotionReportTimePatternResponse;
 import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.util.EmotionCoordinateMapper;
 import likelion.harullala.util.EmotionCoordinateMapper.Coordinate;
@@ -201,6 +202,132 @@ public class EmotionReportService {
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("#000000"); // 기본값: 검정
+    }
+
+    /**
+     * 시간대별 감정 패턴 분석
+     * @param userId 사용자 ID
+     * @param targetMonth 대상 월 (예: "2024-01", null이면 현재 월)
+     * @return 시간대별 감정 패턴
+     */
+    public EmotionReportTimePatternResponse getTimePattern(Long userId, String targetMonth) {
+        // 대상 월 설정
+        YearMonth month = targetMonth != null 
+                ? YearMonth.parse(targetMonth, DateTimeFormatter.ofPattern("yyyy-MM"))
+                : YearMonth.now();
+
+        // 해당 월의 감정 기록 조회
+        List<EmotionRecord> records = getMonthlyRecords(userId, month);
+
+        if (records.isEmpty()) {
+            return EmotionReportTimePatternResponse.builder()
+                    .dominant_time("없음")
+                    .dominant_emotion("없음")
+                    .total_count(0)
+                    .time_slots(Collections.emptyList())
+                    .build();
+        }
+
+        int totalCount = records.size();
+
+        // 시간대별로 그룹화
+        Map<String, List<EmotionRecord>> timeGroups = records.stream()
+                .collect(Collectors.groupingBy(this::getTimeSlotName));
+
+        // 각 시간대별 통계 생성
+        List<EmotionReportTimePatternResponse.TimeSlot> timeSlots = timeGroups.entrySet().stream()
+                .map(entry -> {
+                    String timeSlot = entry.getKey();
+                    List<EmotionRecord> timeRecords = entry.getValue();
+                    int count = timeRecords.size();
+
+                    // 해당 시간대에서 가장 많았던 감정 찾기
+                    Map<String, List<EmotionRecord>> emotionGroups = timeRecords.stream()
+                            .collect(Collectors.groupingBy(EmotionRecord::getEmotionName));
+
+                    // 가장 많이 나타난 감정
+                    Map.Entry<String, List<EmotionRecord>> topEmotion = emotionGroups.entrySet().stream()
+                            .max(Comparator.comparingInt(e -> e.getValue().size()))
+                            .orElse(null);
+
+                    if (topEmotion == null) {
+                        return null;
+                    }
+
+                    String emotionName = topEmotion.getKey();
+                    List<EmotionRecord> emotionRecords = topEmotion.getValue();
+                    var emojiEmotion = emotionRecords.get(0).getEmojiEmotion();
+                    String color = findMostFrequentColor(emotionRecords);
+                    String textColor = findMostFrequentTextColor(emotionRecords);
+                    double percentage = (count * 100.0) / totalCount;
+
+                    return EmotionReportTimePatternResponse.TimeSlot.builder()
+                            .time_range(getTimeRangeLabel(timeSlot))
+                            .emotion_name(emotionName)
+                            .emoji_emotion(emojiEmotion)
+                            .count(count)
+                            .percentage(Math.round(percentage * 10) / 10.0)
+                            .color(color)
+                            .text_color(textColor)
+                            .build();
+                })
+                .filter(Objects::nonNull)
+                .sorted((a, b) -> b.getCount().compareTo(a.getCount())) // 기록 수 내림차순
+                .collect(Collectors.toList());
+
+        // 가장 많이 기록한 시간대와 그 시간대의 주요 감정
+        EmotionReportTimePatternResponse.TimeSlot dominantSlot = timeSlots.isEmpty() ? null : timeSlots.get(0);
+
+        return EmotionReportTimePatternResponse.builder()
+                .dominant_time(dominantSlot != null ? extractTimeName(dominantSlot.getTime_range()) : "없음")
+                .dominant_emotion(dominantSlot != null ? dominantSlot.getEmotion_name() : "없음")
+                .total_count(totalCount)
+                .time_slots(timeSlots)
+                .build();
+    }
+
+    /**
+     * 시간대 구분 (0-6: 새벽, 6-12: 아침, 12-18: 낮, 18-24: 저녁)
+     */
+    private String getTimeSlotName(EmotionRecord record) {
+        int hour = record.getCreatedAt().getHour();
+        
+        if (hour >= 0 && hour < 6) {
+            return "새벽";
+        } else if (hour >= 6 && hour < 12) {
+            return "아침";
+        } else if (hour >= 12 && hour < 18) {
+            return "낮";
+        } else {
+            return "저녁";
+        }
+    }
+
+    /**
+     * 시간대 라벨 생성
+     */
+    private String getTimeRangeLabel(String timeSlot) {
+        switch (timeSlot) {
+            case "새벽":
+                return "새벽 (00:00-06:00)";
+            case "아침":
+                return "아침 (06:00-12:00)";
+            case "낮":
+                return "낮 (12:00-18:00)";
+            case "저녁":
+                return "저녁 (18:00-24:00)";
+            default:
+                return timeSlot;
+        }
+    }
+
+    /**
+     * 시간대 라벨에서 시간대 이름만 추출
+     */
+    private String extractTimeName(String timeRangeLabel) {
+        // "낮 (12:00-18:00)" -> "낮"
+        int index = timeRangeLabel.indexOf(" ");
+        return index > 0 ? timeRangeLabel.substring(0, index) : timeRangeLabel;
     }
 }
 
