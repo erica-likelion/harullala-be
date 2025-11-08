@@ -37,6 +37,7 @@ public class EmotionRecordService {
                 .emotionName(request.getEmotion_name())
                 .mainColor(request.getMain_color())
                 .subColor(request.getSub_color())
+                .textColor(request.getText_color()) // 텍스트 색상 추가
                 .positionX(request.getPosition_x())
                 .positionY(request.getPosition_y())
                 .isShared(request.getIs_shared()) // 사용자가 선택한 공유 여부

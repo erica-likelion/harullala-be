@@ -24,12 +24,15 @@ public class EmotionRecord {
     @Column(nullable = false, columnDefinition = "TEXT") // 감정기록 필드 (NOT NULL, TEXT 타입)
     private String record; // 감정기록
 
-    // ===== 색상 정보 (사용자가 선택한 Main, Sub 색상) =====
+    // ===== 색상 정보 (사용자가 선택한 Main, Sub, Text 색상) =====
     @Column(name = "main_color", length = 7) // Main 색상 (HEX 코드, 예: #FF5733)
     private String mainColor;
 
     @Column(name = "sub_color", length = 7) // Sub 색상 (HEX 코드, 예: #3357FF)
     private String subColor;
+
+    @Column(name = "text_color", length = 7) // Text 색상 (HEX 코드, 예: #FFFFFF)
+    private String textColor;
 
     // ===== 좌표 정보 (그라디언트 맵에서 선택한 위치) =====
     @Column(name = "position_x") // X축 좌표 (0.0 ~ 1.0 정규화 값 또는 실제 픽셀 값)
@@ -71,12 +74,13 @@ public class EmotionRecord {
      * 감정기록 업데이트 (전체)
      */
     public void update(String record, String emotionName, EmojiEmotion emojiEmotion, 
-                      String mainColor, String subColor, Double positionX, Double positionY) {
+                      String mainColor, String subColor, String textColor, Double positionX, Double positionY) {
         this.record = record; // 감정기록 업데이트
         this.emotionName = emotionName; // 감정명 업데이트
         this.emojiEmotion = emojiEmotion; // 감정 카테고리 업데이트
         this.mainColor = mainColor; // Main 색상 업데이트
         this.subColor = subColor; // Sub 색상 업데이트
+        this.textColor = textColor; // Text 색상 업데이트
         this.positionX = positionX; // X 좌표 업데이트
         this.positionY = positionY; // Y 좌표 업데이트
     }

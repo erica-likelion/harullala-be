@@ -18,6 +18,7 @@ public class EmotionListResponse {
     private String emotion_name; // 구체적인 감정명
     private String main_color; // Main 색상
     private String sub_color; // Sub 색상
+    private String text_color; // Text 색상
     private Boolean is_shared;
     private LocalDateTime created_at;
 
@@ -29,6 +30,7 @@ public class EmotionListResponse {
                 .emotion_name(emotionRecord.getEmotionName())
                 .main_color(emotionRecord.getMainColor())
                 .sub_color(emotionRecord.getSubColor())
+                .text_color(emotionRecord.getTextColor())
                 .is_shared(emotionRecord.getIsShared())
                 .created_at(emotionRecord.getCreatedAt())
                 .build();

@@ -95,6 +95,7 @@ public class EmotionReportService {
                     
                     // 가장 많이 사용된 색상 찾기 (Main Color 기준)
                     String representativeColor = findMostFrequentColor(emotionRecords);
+                    String representativeTextColor = findMostFrequentTextColor(emotionRecords);
                     
                     // 첫 번째 레코드의 카테고리 사용
                     var emojiEmotion = emotionRecords.get(0).getEmojiEmotion();
@@ -107,6 +108,7 @@ public class EmotionReportService {
                             .emoji_emotion(emojiEmotion)
                             .count(count)
                             .color(representativeColor)
+                            .text_color(representativeTextColor)
                             .percentage(Math.round(percentage * 10) / 10.0) // 소수점 1자리
                             .build();
                 })
@@ -185,6 +187,20 @@ public class EmotionReportService {
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("#808080"); // 기본값: 회색
+    }
+
+    /**
+     * 가장 많이 사용된 텍스트 색상 찾기 (Text Color 기준)
+     */
+    private String findMostFrequentTextColor(List<EmotionRecord> records) {
+        return records.stream()
+                .map(EmotionRecord::getTextColor)
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(color -> color, Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("#000000"); // 기본값: 검정
     }
 }
 

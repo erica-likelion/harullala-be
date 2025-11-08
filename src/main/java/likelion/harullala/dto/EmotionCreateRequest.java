@@ -21,9 +21,10 @@ public class EmotionCreateRequest {
     @NotBlank(message = "감정명을 선택해주세요.")
     private String emotion_name; // 구체적인 감정명 (예: "만족스러움")
 
-    // 색상 정보 (Main, Sub)
+    // 색상 정보 (Main, Sub, Text)
     private String main_color; // Main 색상 HEX 코드 (예: "#FF5733")
     private String sub_color;  // Sub 색상 HEX 코드 (예: "#3357FF")
+    private String text_color; // Text 색상 HEX 코드 (예: "#FFFFFF")
 
     // 좌표 정보 (그라디언트 맵 위치)
     private Double position_x; // X축 좌표

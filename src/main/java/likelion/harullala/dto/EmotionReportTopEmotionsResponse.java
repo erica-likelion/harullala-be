@@ -30,6 +30,7 @@ public class EmotionReportTopEmotionsResponse {
         private EmojiEmotion emoji_emotion; // 감정 카테고리
         private Integer count;              // 횟수
         private String color;               // 대표 색상 (가장 많이 사용된 Main Color)
+        private String text_color;          // 대표 텍스트 색상
         private Double percentage;          // 비율 (예: 35.5)
     }
 }

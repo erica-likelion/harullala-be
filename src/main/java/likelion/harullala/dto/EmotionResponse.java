@@ -19,6 +19,7 @@ public class EmotionResponse {
     private String emotion_name; // 구체적인 감정명
     private String main_color; // Main 색상
     private String sub_color; // Sub 색상
+    private String text_color; // Text 색상
     private Double position_x; // X 좌표
     private Double position_y; // Y 좌표
     private Boolean is_shared;
@@ -34,6 +35,7 @@ public class EmotionResponse {
                 .emotion_name(emotionRecord.getEmotionName())
                 .main_color(emotionRecord.getMainColor())
                 .sub_color(emotionRecord.getSubColor())
+                .text_color(emotionRecord.getTextColor())
                 .position_x(emotionRecord.getPositionX())
                 .position_y(emotionRecord.getPositionY())
                 .is_shared(emotionRecord.getIsShared())
