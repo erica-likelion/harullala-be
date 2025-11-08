@@ -4,6 +4,8 @@ import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.dto.EmotionReportComparisonResponse;
 import likelion.harullala.dto.EmotionReportTopEmotionsResponse;
 import likelion.harullala.repository.EmotionRecordRepository;
+import likelion.harullala.util.EmotionCoordinateMapper;
+import likelion.harullala.util.EmotionCoordinateMapper.Coordinate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,16 +146,17 @@ public class EmotionReportService {
                     .build();
         }
 
-        // X, Y 좌표 평균 계산
+        // X, Y 좌표 평균 계산 (감정명 기반)
+        // 각 감정기록의 감정명으로 미리 정의된 좌표를 가져와서 평균 계산
         double avgX = records.stream()
-                .filter(r -> r.getPositionX() != null)
-                .mapToDouble(EmotionRecord::getPositionX)
+                .map(r -> EmotionCoordinateMapper.getCoordinate(r.getEmotionName()))
+                .mapToDouble(Coordinate::getX)
                 .average()
                 .orElse(0.5);
 
         double avgY = records.stream()
-                .filter(r -> r.getPositionY() != null)
-                .mapToDouble(EmotionRecord::getPositionY)
+                .map(r -> EmotionCoordinateMapper.getCoordinate(r.getEmotionName()))
+                .mapToDouble(Coordinate::getY)
                 .average()
                 .orElse(0.5);
 

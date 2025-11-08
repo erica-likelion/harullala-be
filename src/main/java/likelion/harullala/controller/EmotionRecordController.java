@@ -23,28 +23,6 @@ import java.util.List;
 public class EmotionRecordController {
 
     private final EmotionRecordService emotionRecordService;
-    private final likelion.harullala.service.EmotionRecommendService emotionRecommendService;
-
-    /**
-     * 감정 추천 API (색상/좌표 기반)
-     * POST /api/v1/emotion/recommend
-     * 
-     * 플로우: 사용자가 그라디언트 맵에서 색상 선택 → 좌표/색상 정보 전송 → 4-5개 감정 추천
-     */
-    @PostMapping("/recommend")
-    public ResponseEntity<ApiResponse<likelion.harullala.dto.EmotionRecommendResponse>> recommendEmotions(
-            @Valid @RequestBody likelion.harullala.dto.EmotionRecommendRequest request
-    ) {
-        likelion.harullala.dto.EmotionRecommendResponse response = emotionRecommendService.recommendEmotions(request);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success(
-                        200,
-                        "감정 추천 완료",
-                        response
-                ));
-    }
 
     /**
      * 감정기록 생성 API
