@@ -1,6 +1,5 @@
 package likelion.harullala.dto;
 
-import likelion.harullala.domain.EmojiEmotion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,7 +28,6 @@ public class EmotionReportTimePatternResponse {
     public static class TimeSlot {
         private String time_range;        // 시간대 (예: "낮 (12:00-18:00)")
         private String emotion_name;      // 가장 많았던 감정명
-        private EmojiEmotion emoji_emotion; // 감정 카테고리
         private Integer count;            // 해당 시간대 기록 수
         private Double percentage;        // 비율 (예: 42.5)
         private String main_color;        // 대표 메인 색상

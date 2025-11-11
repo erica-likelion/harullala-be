@@ -2,7 +2,6 @@ package likelion.harullala.dto;
 
 import java.time.LocalDateTime;
 
-import likelion.harullala.domain.EmojiEmotion;
 import likelion.harullala.domain.EmotionRecord;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +16,6 @@ public class FriendFeedResponse {
 
     private Long recordId;
     private String record;
-    private EmojiEmotion emojiEmotion;
     private String emotionName; // 감정명
     private String mainColor; // Main 색상
     private String subColor; // Sub 색상
@@ -31,7 +29,6 @@ public class FriendFeedResponse {
         return FriendFeedResponse.builder()
                 .recordId(emotionRecord.getRecordId())
                 .record(emotionRecord.getRecord())
-                .emojiEmotion(emotionRecord.getEmojiEmotion())
                 .emotionName(emotionRecord.getEmotionName())
                 .mainColor(emotionRecord.getMainColor())
                 .subColor(emotionRecord.getSubColor())

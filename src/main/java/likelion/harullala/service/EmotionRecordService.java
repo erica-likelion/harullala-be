@@ -37,17 +37,14 @@ public class EmotionRecordService {
 
     @Transactional
     public EmotionResponse createEmotionRecord(Long userId, EmotionCreateRequest request) {
-        // 감정 기록 엔티티 생성 (색상, 좌표, 감정명 포함)
+        // 감정 기록 엔티티 생성 (색상, 감정명 포함)
         EmotionRecord emotionRecord = EmotionRecord.builder()
                 .userId(userId)
                 .record(request.getRecord())
-                .emojiEmotion(request.getEmoji_emotion())
                 .emotionName(request.getEmotion_name())
                 .mainColor(request.getMain_color())
                 .subColor(request.getSub_color())
                 .textColor(request.getText_color()) // 텍스트 색상 추가
-                .positionX(request.getPosition_x())
-                .positionY(request.getPosition_y())
                 .isShared(request.getIs_shared()) // 사용자가 선택한 공유 여부
                 .aiFeedbackCount(request.getAi_feedback_count() != null ? request.getAi_feedback_count() : 0) // AI 피드백 횟수 (기본값 0)
                 .build();
@@ -149,12 +146,9 @@ public class EmotionRecordService {
         emotionRecord.update(
                 request.getRecord(),
                 request.getEmotion_name(),
-                request.getEmoji_emotion(),
                 request.getMain_color(),
                 request.getSub_color(),
                 request.getText_color(),
-                request.getPosition_x(),
-                request.getPosition_y(),
                 request.getAi_feedback_count()
         );
 

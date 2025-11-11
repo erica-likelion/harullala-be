@@ -34,18 +34,7 @@ public class EmotionRecord {
     @Column(name = "text_color", length = 7) // Text 색상 (HEX 코드, 예: #FFFFFF)
     private String textColor;
 
-    // ===== 좌표 정보 (그라디언트 맵에서 선택한 위치) =====
-    @Column(name = "position_x") // X축 좌표 (0.0 ~ 1.0 정규화 값 또는 실제 픽셀 값)
-    private Double positionX;
-
-    @Column(name = "position_y") // Y축 좌표 (0.0 ~ 1.0 정규화 값 또는 실제 픽셀 값)
-    private Double positionY;
-
     // ===== 감정 정보 =====
-    @Enumerated(EnumType.STRING) // 감정 카테고리 (ENUM 타입)
-    @Column(name = "emoji_emotion", nullable = false) // 감정 카테고리 필드 (NOT NULL)
-    private EmojiEmotion emojiEmotion; // 감정 카테고리 (HAPPY, SAD 등)
-
     @Column(name = "emotion_name", nullable = false, length = 50) // 사용자가 선택한 구체적인 감정명
     private String emotionName; // 구체적인 감정명 (예: "만족스러움", "행복함", "평온")
 
@@ -77,17 +66,14 @@ public class EmotionRecord {
     /**
      * 감정기록 업데이트 (전체)
      */
-    public void update(String record, String emotionName, EmojiEmotion emojiEmotion, 
-                      String mainColor, String subColor, String textColor, Double positionX, Double positionY,
+    public void update(String record, String emotionName,
+                      String mainColor, String subColor, String textColor,
                       Integer aiFeedbackCount) {
         this.record = record; // 감정기록 업데이트
         this.emotionName = emotionName; // 감정명 업데이트
-        this.emojiEmotion = emojiEmotion; // 감정 카테고리 업데이트
         this.mainColor = mainColor; // Main 색상 업데이트
         this.subColor = subColor; // Sub 색상 업데이트
         this.textColor = textColor; // Text 색상 업데이트
-        this.positionX = positionX; // X 좌표 업데이트
-        this.positionY = positionY; // Y 좌표 업데이트
         if (aiFeedbackCount != null) {
             this.aiFeedbackCount = aiFeedbackCount; // AI 피드백 횟수 업데이트
         }

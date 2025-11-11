@@ -29,14 +29,14 @@ public class ChatGptClient {
     
     private final RestTemplate restTemplate = new RestTemplate();
     
-    public String generateFeedback(String emotionText, String emoji, Character character) {
+    public String generateFeedback(String emotionText, Character character) {
         if (apiKey == null || apiKey.isEmpty()) {
             // API 키가 없으면 기본 응답 반환
-            return "오늘의 감정(" + emoji + ") 피드백: " + emotionText;
+            return "오늘의 감정 피드백: " + emotionText;
         }
         
         try {
-            String prompt = buildCharacterPrompt(emotionText, emoji, character);
+            String prompt = buildCharacterPrompt(emotionText, character);
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -64,15 +64,15 @@ public class ChatGptClient {
             }
             
             // API 호출 실패 시 기본 응답
-            return "오늘의 감정(" + emoji + ") 피드백: " + emotionText;
+            return "오늘의 감정 피드백: " + emotionText;
             
         } catch (Exception e) {
             // 예외 발생 시 기본 응답
-            return "오늘의 감정(" + emoji + ") 피드백: " + emotionText;
+            return "오늘의 감정 피드백: " + emotionText;
         }
     }
     
-    private String buildCharacterPrompt(String emotionText, String emoji, Character character) {
+    private String buildCharacterPrompt(String emotionText, Character character) {
         // Character 엔티티의 정보 직접 사용 (null 체크 제거 - 모든 유저는 캐릭터 선택함)
         String characterDescription = character.getDescription();
         String characterTag = character.getTag();
@@ -83,7 +83,6 @@ public class ChatGptClient {
             캐릭터 성격: %s
             
             사용자의 오늘 감정 기록:
-            감정: %s
             내용: %s
             
             위 캐릭터의 말투와 성격에 맞게 짧고 자연스럽게 반응해주세요.
@@ -94,7 +93,7 @@ public class ChatGptClient {
             - 2-3문장 이내로 간결하게
             - 감정을 인정하고 응원하는 톤
             - 진정성 있고 따뜻한 느낌
-            """, characterName, characterTag, characterDescription, emoji, emotionText);
+            """, characterName, characterTag, characterDescription, emotionText);
     }
     
     /**
