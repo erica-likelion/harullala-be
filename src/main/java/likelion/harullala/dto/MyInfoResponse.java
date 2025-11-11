@@ -8,7 +8,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class MyInfoResponse {
-    private String name;
     private String nickname;
     private String email;
     private Provider provider;
@@ -19,7 +18,6 @@ public class MyInfoResponse {
 
     public static MyInfoResponse of(User user, CharacterInfo characterInfo) {
         return new MyInfoResponse(
-                user.getName(),
                 user.getNickname(),
                 user.getEmail(),
                 user.getProvider(),

@@ -1,6 +1,7 @@
 package likelion.harullala.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -54,26 +55,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse kakaoLogin(KakaoLoginReq req) {
-        KakaoAuthClient.KakaoTokenResponse tokenResponse = kakaoAuthClient.getToken(
-                "authorization_code",
-                kakaoApiKey,
-                req.redirectUri(),
-                req.authorizationCode()
-        );
-
-        KakaoApiClient.KakaoUserInfo userInfo = kakaoApiClient.getUserInfo("Bearer " + tokenResponse.access_token());
+        KakaoApiClient.KakaoUserInfo userInfo = kakaoApiClient.getUserInfo("Bearer " + req.kakaoAccessToken());
 
         User user = userRepository.findByProviderUserId(userInfo.id().toString())
                 .orElseGet(() -> {
                     String connectCode;
                     do {
-                        connectCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                        connectCode = generateConnectCode();
                     } while (userRepository.existsByConnectCode(connectCode));
 
                     User newUser = User.builder()
-                            .name(userInfo.kakao_account().profile().nickname())
-                            .nickname(userInfo.kakao_account().profile().nickname())
-                            .email(userInfo.kakao_account().email())
+                            .email(userInfo.kakao_account() != null ? userInfo.kakao_account().email() : null)
                             .providerUserId(userInfo.id().toString())
                             .provider(Provider.KAKAO)
                             .connectCode(connectCode)
@@ -103,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseGet(() -> {
                     String connectCode;
                     do {
-                        connectCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                        connectCode = generateConnectCode();
                     } while (userRepository.existsByConnectCode(connectCode));
 
                     User newUser = User.builder()
@@ -126,10 +118,22 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.of(accessToken, refreshToken, isOnboardingNeeded);
     }
 
+    private String generateConnectCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        int length = 8;
+        java.util.Random random = new java.util.Random();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
     private Claims verifyAndGetClaims(String identityToken) {
         try {
             String headerOfIdentityToken = identityToken.substring(0, identityToken.indexOf("."));
-            Map<String, String> header = new ObjectMapper().readValue(new String(Base64.getDecoder().decode(headerOfIdentityToken), StandardCharsets.UTF_8), Map.class);
+            Map<String, String> header = new ObjectMapper().readValue(new String(Base64.getDecoder().decode(headerOfIdentityToken), StandardCharsets.UTF_8),
+                    new TypeReference<>() {});
 
             AppleAuthClient.ApplePublicKeysResponse publicKeys = appleAuthClient.getPublicKeys();
             AppleAuthClient.ApplePublicKey publicKey = publicKeys.keys().stream()
@@ -188,4 +192,16 @@ public class AuthServiceImpl implements AuthService {
 
         return TokenRefreshResponse.of(newAccessToken, newRefreshToken);
     }
+
+    @Override
+    @Transactional
+    public void logout(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.updateRefreshToken(null);
+        userRepository.save(user);
+    }
 }
+
+
+        
