@@ -20,7 +20,6 @@ import likelion.harullala.dto.RemoveFriendDto;
 import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
 import likelion.harullala.dto.SentFriendRequestDto;
-import likelion.harullala.service.FriendReminderService;
 import likelion.harullala.service.FriendService;
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +29,6 @@ import lombok.RequiredArgsConstructor;
 public class FriendController {
 
     private final FriendService friendService;
-    private final FriendReminderService friendReminderService;
 
     /**
      * 친구 요청 보내기
@@ -133,19 +131,5 @@ public class FriendController {
         List<SentFriendRequestDto> requests = friendService.getSentFriendRequests(userId);
         
         return ApiSuccess.of(requests, "보낸 친구 요청 목록 조회가 성공했습니다.");
-    }
-    
-    /**
-     * 친구 기록 리마인드 메시지 조회
-     * GET /api/v1/friends/reminder
-     */
-    @GetMapping("/reminder")
-    public ApiSuccess<String> getReminder(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        Long userId = userDetails.getUser().getId();
-        String message = friendReminderService.generateReminder(userId);
-        
-        return ApiSuccess.of(message, "친구 리마인드 메시지 조회 성공");
     }
 }
