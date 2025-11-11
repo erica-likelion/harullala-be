@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import likelion.harullala.dto.ApiSuccess;
+import likelion.harullala.dto.FriendInviteGreetingResponse;
 import likelion.harullala.dto.HomeGreetingResponse;
+import likelion.harullala.service.FriendInviteGreetingService;
 import likelion.harullala.service.HomeGreetingService;
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class HomeController {
 
     private final HomeGreetingService homeGreetingService;
+    private final FriendInviteGreetingService friendInviteGreetingService;
 
     /**
      * 홈 화면 AI 인사말 조회
@@ -32,6 +35,18 @@ public class HomeController {
         HomeGreetingResponse response = homeGreetingService.generateGreeting(userId);
         
         return ResponseEntity.ok(ApiSuccess.of(response, "홈 인사말을 생성했습니다."));
+    }
+
+    /**
+     * 친구 초대 페이지 AI 멘트 조회
+     * GET /api/v1/home/friend-invite-greeting
+     */
+    @GetMapping("/friend-invite-greeting")
+    public ResponseEntity<ApiSuccess<FriendInviteGreetingResponse>> getFriendInviteGreeting() {
+        Long userId = getCurrentUserId();
+        FriendInviteGreetingResponse response = friendInviteGreetingService.generateInviteGreeting(userId);
+        
+        return ResponseEntity.ok(ApiSuccess.of(response, "친구 초대 멘트를 생성했습니다."));
     }
 
     /**

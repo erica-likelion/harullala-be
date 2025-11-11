@@ -1,0 +1,7 @@
+feat: 친구 초대 페이지 AI 멘트 기능 추가
+
+- 캐릭터 성격에 맞는 친구 초대 멘트 생성
+- GET /api/v1/home/friend-invite-greeting API 추가
+- 하루 1번만 AI 호출로 비용 최적화
+- 홈 화면 AI 인사말 글자 수 조정 (10-15자)
+
