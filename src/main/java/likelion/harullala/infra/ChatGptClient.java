@@ -112,6 +112,41 @@ public class ChatGptClient {
         try {
             String prompt = buildReportPrompt(reportSummary, character);
             
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
+            
+            Map<String, Object> requestBody = Map.of(
+                "model", model,
+                "messages", List.of(
+                    Map.of("role", "user", "content", prompt)
+                ),
+                "max_tokens", 200,
+                "temperature", 0.7
+            );
+            
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, request, Map.class);
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                if (!choices.isEmpty()) {
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
+                    return (String) message.get("content");
+                }
+            }
+            
+            // API 호출 실패 시 기본 응답
+            return "이번 달도 수고했어요! 계속 응원할게요!";
+            
+        } catch (Exception e) {
+            // 예외 발생 시 기본 응답
+            return "이번 달도 수고했어요! 계속 응원할게요!";
+        }
+    }
+    
+    /**
      * 커스텀 프롬프트로 AI 메시지 생성
      */
     public String generateCustomFeedback(String customPrompt) {
@@ -127,7 +162,6 @@ public class ChatGptClient {
             Map<String, Object> requestBody = Map.of(
                 "model", model,
                 "messages", List.of(
-                    Map.of("role", "user", "content", prompt)
                     Map.of("role", "user", "content", customPrompt)
                 ),
                 "max_tokens", 200,
@@ -188,12 +222,5 @@ public class ChatGptClient {
             - 진정성 있고 공감하는 느낌
             - 다음 달도 함께하자는 격려
             """, characterName, characterTag, characterDescription, reportSummary);
-    }
-}
-            return "메시지를 생성할 수 없습니다.";
-            
-        } catch (Exception e) {
-            return "AI 서비스 오류가 발생했습니다.";
-        }
     }
 }
