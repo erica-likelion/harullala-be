@@ -216,8 +216,7 @@ public class FriendServiceImpl implements FriendService {
                     User friend = relationship.getOtherUser(userId);
                     return new FriendInfoDto(
                             friend.getNickname(),
-                            friend.getConnectCode(),
-                            friend.getNickname()
+                            friend.getConnectCode()
                     );
                 })
                 .collect(Collectors.toList());

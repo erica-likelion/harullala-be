@@ -13,6 +13,8 @@ import likelion.harullala.service.EmotionRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,10 +35,7 @@ public class EmotionRecordController {
             @Valid @RequestBody EmotionCreateRequest request,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        // String token = authorizationHeader.replace("Bearer ", "");
-        // Long userId = jwtTokenProvider.getUserIdFromToken(token);
-        Long userId = 1L; // 임시 userId
+        Long userId = getCurrentUserId();
 
         EmotionResponse response = emotionRecordService.createEmotionRecord(userId, request);
 
@@ -59,8 +58,7 @@ public class EmotionRecordController {
             @RequestParam(defaultValue = "20") int size,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        Long userId = 1L; // 임시 userId
+        Long userId = getCurrentUserId();
 
         List<EmotionListResponse> response = emotionRecordService.getEmotionRecordList(userId, page, size);
 
@@ -102,8 +100,7 @@ public class EmotionRecordController {
             @PathVariable Long recordId,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        Long userId = 1L; // 임시 userId
+        Long userId = getCurrentUserId();
 
         EmotionResponse response = emotionRecordService.getEmotionRecord(userId, recordId);
 
@@ -126,8 +123,7 @@ public class EmotionRecordController {
             @Valid @RequestBody EmotionUpdateRequest request,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        Long userId = 1L; // 임시 userId
+        Long userId = getCurrentUserId();
 
         EmotionUpdateResponse response = emotionRecordService.updateEmotionRecord(userId, recordId, request);
 
@@ -149,8 +145,7 @@ public class EmotionRecordController {
             @PathVariable Long recordId,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        Long userId = 1L; // 임시 userId
+        Long userId = getCurrentUserId();
 
         EmotionDeleteResponse response = emotionRecordService.deleteEmotionRecord(userId, recordId);
 
@@ -173,8 +168,7 @@ public class EmotionRecordController {
             @Valid @RequestBody EmotionShareRequest request,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        Long userId = 1L; // 임시 userId
+        Long userId = getCurrentUserId();
 
         EmotionResponse response = emotionRecordService.updateSharedStatus(userId, recordId, request.getIs_shared());
 
@@ -187,6 +181,19 @@ public class EmotionRecordController {
                         message,
                         response
                 ));
+    }
+
+    /**
+     * 현재 인증된 사용자 ID 가져오기
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof likelion.harullala.config.security.CustomUserDetails) {
+            likelion.harullala.config.security.CustomUserDetails userDetails = 
+                (likelion.harullala.config.security.CustomUserDetails) authentication.getPrincipal();
+            return userDetails.getUser().getId();
+        }
+        throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
     }
 }
 
