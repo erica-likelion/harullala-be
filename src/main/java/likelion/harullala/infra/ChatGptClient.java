@@ -98,6 +98,20 @@ public class ChatGptClient {
     }
     
     /**
+     * 감정 리포트용 캐릭터 멘트 생성
+     * @param reportSummary 리포트 요약 정보 (이번 달 통계)
+     * @param character 캐릭터 정보
+     * @return AI 생성 캐릭터 멘트
+     */
+    public String generateReportMessage(String reportSummary, Character character) {
+        if (apiKey == null || apiKey.isEmpty()) {
+            // API 키가 없으면 기본 응답 반환
+            return "이번 달도 수고했어요! 계속 응원할게요!";
+        }
+        
+        try {
+            String prompt = buildReportPrompt(reportSummary, character);
+            
      * 커스텀 프롬프트로 AI 메시지 생성
      */
     public String generateCustomFeedback(String customPrompt) {
@@ -113,6 +127,7 @@ public class ChatGptClient {
             Map<String, Object> requestBody = Map.of(
                 "model", model,
                 "messages", List.of(
+                    Map.of("role", "user", "content", prompt)
                     Map.of("role", "user", "content", customPrompt)
                 ),
                 "max_tokens", 200,
@@ -131,6 +146,50 @@ public class ChatGptClient {
                 }
             }
             
+            // API 호출 실패 시 기본 응답
+            return "이번 달도 수고했어요! 계속 응원할게요!";
+            
+        } catch (Exception e) {
+            // 예외 발생 시 기본 응답
+            return "이번 달도 수고했어요! 계속 응원할게요!";
+        }
+    }
+    
+    /**
+     * 감정 리포트용 프롬프트 생성
+     */
+    private String buildReportPrompt(String reportSummary, Character character) {
+        String characterDescription = character.getDescription() != null 
+            ? character.getDescription() 
+            : "사용자의 감정을 공감하는 상담사입니다.";
+        
+        String characterTag = character.getTag() != null 
+            ? character.getTag() 
+            : "일반적";
+        
+        String characterName = character.getName() != null 
+            ? character.getName() 
+            : "상담사";
+        
+        return String.format("""
+            당신은 %s(%s) 캐릭터입니다.
+            캐릭터 성격: %s
+            
+            사용자의 이번 달 감정 리포트:
+            %s
+            
+            위 리포트를 바탕으로, 캐릭터의 말투와 성격에 맞게 사용자를 응원하고 격려하는 멘트를 해주세요.
+            
+            규칙:
+            - 캐릭터의 개성 있는 말투 사용
+            - 3-4문장 이내로 간결하게
+            - 사용자의 이번 달 감정 패턴을 언급하면서 응원
+            - 긍정적이고 따뜻한 톤
+            - 진정성 있고 공감하는 느낌
+            - 다음 달도 함께하자는 격려
+            """, characterName, characterTag, characterDescription, reportSummary);
+    }
+}
             return "메시지를 생성할 수 없습니다.";
             
         } catch (Exception e) {

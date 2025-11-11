@@ -18,6 +18,10 @@ public class FriendFeedResponse {
     private Long recordId;
     private String record;
     private EmojiEmotion emojiEmotion;
+    private String emotionName; // 감정명
+    private String mainColor; // Main 색상
+    private String subColor; // Sub 색상
+    private String textColor; // Text 색상
     private LocalDateTime createdAt;
     private String authorNickname; // 작성자 닉네임
     private boolean isRead; // 현재 사용자가 읽었는지 여부
@@ -28,6 +32,10 @@ public class FriendFeedResponse {
                 .recordId(emotionRecord.getRecordId())
                 .record(emotionRecord.getRecord())
                 .emojiEmotion(emotionRecord.getEmojiEmotion())
+                .emotionName(emotionRecord.getEmotionName())
+                .mainColor(emotionRecord.getMainColor())
+                .subColor(emotionRecord.getSubColor())
+                .textColor(emotionRecord.getTextColor())
                 .createdAt(emotionRecord.getCreatedAt())
                 .authorNickname(authorNickname)
                 .isRead(isRead)

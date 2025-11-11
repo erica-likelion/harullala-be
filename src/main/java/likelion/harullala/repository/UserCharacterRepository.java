@@ -11,8 +11,14 @@ import java.util.Optional;
 public interface UserCharacterRepository extends JpaRepository<UserCharacter, Long> {
     boolean existsByUserId(Long userId);
     Optional<UserCharacter> findByUserId(Long userId);
+    
+    /**
+     */
+    @Query("SELECT uc FROM UserCharacter uc " +
+           "JOIN FETCH uc.selectedCharacter " +
+           "WHERE uc.user.userId = :userId AND uc.active = true")
+    Optional<UserCharacter> findActiveByUserId(@Param("userId") Long userId);
 
     @Modifying
-    @Query("DELETE FROM UserCharacter uc WHERE uc.user.id = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);
 }
