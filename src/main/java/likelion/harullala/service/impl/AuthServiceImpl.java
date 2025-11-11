@@ -65,7 +65,8 @@ public class AuthServiceImpl implements AuthService {
                     } while (userRepository.existsByConnectCode(connectCode));
 
                     User newUser = User.builder()
-                            .email(userInfo.kakao_account() != null ? userInfo.kakao_account().email() : null)
+                            .nickname(userInfo.kakao_account().profile().nickname())
+                            .email(userInfo.kakao_account().email())
                             .providerUserId(userInfo.id().toString())
                             .provider(Provider.KAKAO)
                             .connectCode(connectCode)

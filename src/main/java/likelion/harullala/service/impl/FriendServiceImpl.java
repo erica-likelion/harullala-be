@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import likelion.harullala.domain.FriendRelationship;
 import likelion.harullala.domain.FriendStatus;
+import likelion.harullala.domain.NotificationType;
 import likelion.harullala.domain.User;
 import likelion.harullala.dto.CancelFriendRequestDto;
 import likelion.harullala.dto.FriendInfoDto;
@@ -20,6 +21,7 @@ import likelion.harullala.dto.SentFriendRequestDto;
 import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
 import likelion.harullala.service.FriendService;
+import likelion.harullala.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -29,6 +31,7 @@ public class FriendServiceImpl implements FriendService {
 
     private final FriendRelationshipRepository friendRelationshipRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -89,7 +92,20 @@ public class FriendServiceImpl implements FriendService {
                 .status(FriendStatus.PENDING)
                 .build();
 
-        friendRelationshipRepository.save(relationship);
+        FriendRelationship saved = friendRelationshipRepository.save(relationship);
+        
+        // 받는 사람에게 푸시 알림 전송
+        try {
+            notificationService.sendNotification(
+                receiver.getId(),
+                NotificationType.FRIEND_REQUEST,
+                "새로운 친구 요청이 도착했어요",
+                requester.getNickname() + "님이 친구 요청을 보냈어요",
+                saved.getId()
+            );
+        } catch (Exception e) {
+            // 알림 전송 실패해도 친구 요청은 정상 처리
+        }
     }
 
     @Override
@@ -127,6 +143,21 @@ public class FriendServiceImpl implements FriendService {
             // 친구 요청 수락 (상태를 ACCEPTED로 변경)
             relationship.accept();
             friendRelationshipRepository.save(relationship);
+            
+            // 요청한 사람에게 푸시 알림 전송
+            try {
+                User requester = relationship.getRequester();
+                User accepter = receiver;
+                notificationService.sendNotification(
+                    requester.getId(),
+                    NotificationType.FRIEND_ACCEPTED,
+                    "친구 요청이 수락되었어요",
+                    accepter.getNickname() + "님이 친구 요청을 수락했어요",
+                    relationship.getId()
+                );
+            } catch (Exception e) {
+                // 알림 전송 실패해도 친구 수락은 정상 처리
+            }
         } else {
             // 친구 요청 거절 (상태를 REJECTED로 변경)
             relationship.reject();
@@ -185,7 +216,8 @@ public class FriendServiceImpl implements FriendService {
                     User friend = relationship.getOtherUser(userId);
                     return new FriendInfoDto(
                             friend.getNickname(),
-                            friend.getConnectCode()
+                            friend.getConnectCode(),
+                            friend.getNickname()
                     );
                 })
                 .collect(Collectors.toList());

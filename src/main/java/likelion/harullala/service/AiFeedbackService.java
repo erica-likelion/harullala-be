@@ -10,6 +10,7 @@ import likelion.harullala.domain.AiFeedback;
 import likelion.harullala.dto.CreateFeedbackRequest;
 import likelion.harullala.dto.FeedbackDto;
 import likelion.harullala.exception.ApiException;
+import likelion.harullala.domain.NotificationType;
 import likelion.harullala.infra.ChatGptClient;
 import likelion.harullala.infra.RecordReader;
 import likelion.harullala.repository.AiFeedbackRepository;
@@ -24,6 +25,7 @@ public class AiFeedbackService {
     private final AiFeedbackRepository feedbackRepo;
     private final RecordReader recordReader;
     private final ChatGptClient chatGptClient;
+    private final NotificationService notificationService;
 
         // TODO: 실제 인증 시스템으로 교체 필요
         // 현재는 개발용으로 하드코딩된 사용자 ID 사용
@@ -65,6 +67,21 @@ public class AiFeedbackService {
             f.setUpdatedAt(Instant.now());
         }
         AiFeedback saved = feedbackRepo.saveAndFlush(f);
+        
+        // 푸시 알림 전송
+        try {
+            notificationService.sendNotification(
+                rec.userId(),
+                NotificationType.AI_FEEDBACK,
+                "AI 피드백이 도착했어요",
+                "오늘의 감정에 대한 AI 피드백을 확인해보세요",
+                saved.getFeedbackId()
+            );
+        } catch (Exception e) {
+            // 알림 전송 실패해도 피드백 생성은 정상 처리
+            // 로그는 NotificationService에서 기록됨
+        }
+        
         return toDto(saved);
     }
 
