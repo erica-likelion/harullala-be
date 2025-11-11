@@ -32,7 +32,8 @@ public class EmotionReportTimePatternResponse {
         private EmojiEmotion emoji_emotion; // 감정 카테고리
         private Integer count;            // 해당 시간대 기록 수
         private Double percentage;        // 비율 (예: 42.5)
-        private String color;             // 대표 색상
+        private String main_color;        // 대표 메인 색상
+        private String sub_color;         // 대표 서브 색상
         private String text_color;        // 대표 텍스트 색상
     }
 }

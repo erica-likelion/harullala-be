@@ -1,6 +1,7 @@
 package likelion.harullala.service;
 
 import likelion.harullala.domain.Character;
+import likelion.harullala.domain.EmojiEmotion;
 import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.domain.UserCharacter;
 import likelion.harullala.dto.EmotionReportCharacterMessageResponse;
@@ -33,8 +34,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EmotionReportService {
-
-    private static final int MESSAGE_LIMIT = 3; // 캐릭터 멘트 생성 제한 (월 3회)
 
     private final EmotionRecordRepository emotionRecordRepository;
     private final UserCharacterRepository userCharacterRepository;
@@ -106,12 +105,12 @@ public class EmotionReportService {
                     List<EmotionRecord> emotionRecords = entry.getValue();
                     int count = emotionRecords.size();
                     
-                    // 가장 많이 사용된 색상 찾기 (Main Color 기준)
-                    String representativeColor = findMostFrequentColor(emotionRecords);
-                    String representativeTextColor = findMostFrequentTextColor(emotionRecords);
-                    
-                    // 첫 번째 레코드의 카테고리 사용
-                    var emojiEmotion = emotionRecords.get(0).getEmojiEmotion();
+                    // 첫 번째 레코드의 색상 및 카테고리 사용
+                    EmotionRecord firstRecord = emotionRecords.get(0);
+                    var emojiEmotion = firstRecord.getEmojiEmotion();
+                    String mainColor = firstRecord.getMainColor();
+                    String subColor = firstRecord.getSubColor();
+                    String textColor = firstRecord.getTextColor();
                     
                     // 비율 계산
                     double percentage = (count * 100.0) / totalCount;
@@ -120,8 +119,9 @@ public class EmotionReportService {
                             .emotion_name(emotionName)
                             .emoji_emotion(emojiEmotion)
                             .count(count)
-                            .color(representativeColor)
-                            .text_color(representativeTextColor)
+                            .main_color(mainColor)
+                            .sub_color(subColor)
+                            .text_color(textColor)
                             .percentage(Math.round(percentage * 10) / 10.0) // 소수점 1자리
                             .build();
                 })
@@ -155,7 +155,11 @@ public class EmotionReportService {
                     .month(month.format(DateTimeFormatter.ofPattern("yyyy-MM")))
                     .avg_position_x(0.5) // 중앙값
                     .avg_position_y(0.5) // 중앙값
-                    .avg_color("#808080") // 회색
+                    .representative_emotion("없음") // 대표 감정 없음
+                    .emoji_emotion(null)
+                    .main_color("#808080") // 회색
+                    .sub_color("#808080") // 회색
+                    .text_color("#000000") // 검정
                     .label(label)
                     .record_count(0)
                     .build();
@@ -175,45 +179,46 @@ public class EmotionReportService {
                 .average()
                 .orElse(0.5);
 
-        // 가장 많이 사용된 색상 찾기
-        String avgColor = findMostFrequentColor(records);
+        // 가장 많이 사용된 감정 찾기 (대표 감정)
+        Map.Entry<String, List<EmotionRecord>> mostFrequentEmotion = findMostFrequentEmotion(records);
+        String representativeEmotion = "없음";
+        EmojiEmotion emojiEmotion = null;
+        String mainColor = "#808080";
+        String subColor = "#808080";
+        String textColor = "#000000";
+
+        if (mostFrequentEmotion != null && !mostFrequentEmotion.getValue().isEmpty()) {
+            representativeEmotion = mostFrequentEmotion.getKey();
+            EmotionRecord representativeRecord = mostFrequentEmotion.getValue().get(0);
+            emojiEmotion = representativeRecord.getEmojiEmotion();
+            mainColor = representativeRecord.getMainColor();
+            subColor = representativeRecord.getSubColor();
+            textColor = representativeRecord.getTextColor();
+        }
 
         return EmotionReportComparisonResponse.MonthlyAverage.builder()
                 .month(month.format(DateTimeFormatter.ofPattern("yyyy-MM")))
                 .avg_position_x(Math.round(avgX * 100.0) / 100.0) // 소수점 2자리
                 .avg_position_y(Math.round(avgY * 100.0) / 100.0)
-                .avg_color(avgColor)
+                .representative_emotion(representativeEmotion)
+                .emoji_emotion(emojiEmotion)
+                .main_color(mainColor)
+                .sub_color(subColor)
+                .text_color(textColor)
                 .label(label)
                 .record_count(records.size())
                 .build();
     }
 
     /**
-     * 가장 많이 사용된 색상 찾기 (Main Color 기준)
+     * 가장 많이 사용된 감정 찾기 (대표 감정)
      */
-    private String findMostFrequentColor(List<EmotionRecord> records) {
+    private Map.Entry<String, List<EmotionRecord>> findMostFrequentEmotion(List<EmotionRecord> records) {
         return records.stream()
-                .map(EmotionRecord::getMainColor)
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(color -> color, Collectors.counting()))
+                .collect(Collectors.groupingBy(EmotionRecord::getEmotionName))
                 .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("#808080"); // 기본값: 회색
-    }
-
-    /**
-     * 가장 많이 사용된 텍스트 색상 찾기 (Text Color 기준)
-     */
-    private String findMostFrequentTextColor(List<EmotionRecord> records) {
-        return records.stream()
-                .map(EmotionRecord::getTextColor)
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(color -> color, Collectors.counting()))
-                .entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("#000000"); // 기본값: 검정
+                .max(Comparator.comparingInt(e -> e.getValue().size()))
+                .orElse(null);
     }
 
     /**
@@ -268,9 +273,11 @@ public class EmotionReportService {
 
                     String emotionName = topEmotion.getKey();
                     List<EmotionRecord> emotionRecords = topEmotion.getValue();
-                    var emojiEmotion = emotionRecords.get(0).getEmojiEmotion();
-                    String color = findMostFrequentColor(emotionRecords);
-                    String textColor = findMostFrequentTextColor(emotionRecords);
+                    EmotionRecord firstRecord = emotionRecords.get(0);
+                    var emojiEmotion = firstRecord.getEmojiEmotion();
+                    String mainColor = firstRecord.getMainColor();
+                    String subColor = firstRecord.getSubColor();
+                    String textColor = firstRecord.getTextColor();
                     double percentage = (count * 100.0) / totalCount;
 
                     return EmotionReportTimePatternResponse.TimeSlot.builder()
@@ -279,7 +286,8 @@ public class EmotionReportService {
                             .emoji_emotion(emojiEmotion)
                             .count(count)
                             .percentage(Math.round(percentage * 10) / 10.0)
-                            .color(color)
+                            .main_color(mainColor)
+                            .sub_color(subColor)
                             .text_color(textColor)
                             .build();
                 })
@@ -371,17 +379,10 @@ public class EmotionReportService {
         // AI로 캐릭터 멘트 생성
         String message = chatGptClient.generateReportMessage(reportSummary, character);
 
-        // TODO: 월별 생성 횟수 제한 구현 (현재는 임시로 1/3으로 설정)
-        // 실제로는 ReportMessage 엔티티를 만들어서 월별 생성 횟수를 저장하고 관리해야 함
-        int attemptsUsed = 1;
-
         return EmotionReportCharacterMessageResponse.builder()
                 .character_name(character.getName())
                 .character_image_url(character.getImageUrl())
                 .message(message)
-                .attempts_used(attemptsUsed)
-                .attempts_remaining(Math.max(0, MESSAGE_LIMIT - attemptsUsed))
-                .attempts_total(MESSAGE_LIMIT)
                 .build();
     }
 

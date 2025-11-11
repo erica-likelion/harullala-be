@@ -20,6 +20,7 @@ public class EmotionListResponse {
     private String sub_color; // Sub 색상
     private String text_color; // Text 색상
     private Boolean is_shared;
+    private Integer ai_feedback_count; // AI 피드백 생성 횟수
     private LocalDateTime created_at;
 
     public static EmotionListResponse from(EmotionRecord emotionRecord) {
@@ -32,6 +33,7 @@ public class EmotionListResponse {
                 .sub_color(emotionRecord.getSubColor())
                 .text_color(emotionRecord.getTextColor())
                 .is_shared(emotionRecord.getIsShared())
+                .ai_feedback_count(emotionRecord.getAiFeedbackCount())
                 .created_at(emotionRecord.getCreatedAt())
                 .build();
     }

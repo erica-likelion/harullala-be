@@ -32,6 +32,9 @@ public class EmotionCreateRequest {
 
     @NotNull(message = "공유 여부를 선택해주세요.")
     private Boolean is_shared; // 친구 공개 여부
+
+    // AI 피드백 생성 횟수 (기본값 0)
+    private Integer ai_feedback_count; // AI 피드백 생성 횟수
 }
 
 

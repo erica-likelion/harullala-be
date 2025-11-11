@@ -162,7 +162,6 @@ public class EmotionReportController {
      * 
      * 화면: 캐릭터의 말
      * - 리포트 데이터를 바탕으로 캐릭터가 응원하는 멘트 생성
-     * - 월 3회 제한
      * 
      * @param month 대상 월 (yyyy-MM 형식, 생략 시 현재 월)
      * @param authorizationHeader JWT 토큰

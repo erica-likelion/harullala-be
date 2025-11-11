@@ -53,6 +53,10 @@ public class EmotionRecord {
     @Builder.Default // 빌더 패턴 기본값 설정
     private Boolean isShared = false; // 공유 상태
 
+    @Column(name = "ai_feedback_count", nullable = false) // AI 피드백 생성 횟수 (NOT NULL)
+    @Builder.Default // 빌더 패턴 기본값 설정
+    private Integer aiFeedbackCount = 0; // AI 피드백 생성 횟수
+
     @Column(name = "created_at", nullable = false, updatable = false) // 생성 시간 필드 (NOT NULL, 수정 불가)
     private LocalDateTime createdAt; // 생성 시간
 
@@ -74,7 +78,8 @@ public class EmotionRecord {
      * 감정기록 업데이트 (전체)
      */
     public void update(String record, String emotionName, EmojiEmotion emojiEmotion, 
-                      String mainColor, String subColor, String textColor, Double positionX, Double positionY) {
+                      String mainColor, String subColor, String textColor, Double positionX, Double positionY,
+                      Integer aiFeedbackCount) {
         this.record = record; // 감정기록 업데이트
         this.emotionName = emotionName; // 감정명 업데이트
         this.emojiEmotion = emojiEmotion; // 감정 카테고리 업데이트
@@ -83,6 +88,9 @@ public class EmotionRecord {
         this.textColor = textColor; // Text 색상 업데이트
         this.positionX = positionX; // X 좌표 업데이트
         this.positionY = positionY; // Y 좌표 업데이트
+        if (aiFeedbackCount != null) {
+            this.aiFeedbackCount = aiFeedbackCount; // AI 피드백 횟수 업데이트
+        }
     }
 
     /**
@@ -97,6 +105,13 @@ public class EmotionRecord {
      */
     public void updateSharedStatus(Boolean isShared) {
         this.isShared = isShared; // 공유 상태 업데이트
+    }
+
+    /**
+     * AI 피드백 생성 횟수 증가
+     */
+    public void incrementAiFeedbackCount() {
+        this.aiFeedbackCount++; // AI 피드백 횟수 1 증가
     }
 }
 

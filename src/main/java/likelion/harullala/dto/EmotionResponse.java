@@ -23,6 +23,7 @@ public class EmotionResponse {
     private Double position_x; // X 좌표
     private Double position_y; // Y 좌표
     private Boolean is_shared;
+    private Integer ai_feedback_count; // AI 피드백 생성 횟수
     private LocalDateTime created_at;
     private LocalDateTime updated_at;
 
@@ -39,6 +40,7 @@ public class EmotionResponse {
                 .position_x(emotionRecord.getPositionX())
                 .position_y(emotionRecord.getPositionY())
                 .is_shared(emotionRecord.getIsShared())
+                .ai_feedback_count(emotionRecord.getAiFeedbackCount())
                 .created_at(emotionRecord.getCreatedAt())
                 .updated_at(emotionRecord.getUpdatedAt())
                 .build();

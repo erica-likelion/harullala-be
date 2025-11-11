@@ -41,6 +41,7 @@ public class EmotionRecordService {
                 .positionX(request.getPosition_x())
                 .positionY(request.getPosition_y())
                 .isShared(request.getIs_shared()) // 사용자가 선택한 공유 여부
+                .aiFeedbackCount(request.getAi_feedback_count() != null ? request.getAi_feedback_count() : 0) // AI 피드백 횟수 (기본값 0)
                 .build();
 
         // 저장
@@ -98,9 +99,23 @@ public class EmotionRecordService {
             throw new ForbiddenAccessException("You do not have permission to update this record");
         }
 
-        // 감정기록 업데이트 (더티 체킹으로 자동 업데이트)
-        // 기존 메서드 사용 - 텍스트만 업데이트하는 경우가 많으므로
-        emotionRecord.updateRecord(request.getRecord());
+        // 감정기록 전체 업데이트 (더티 체킹으로 자동 업데이트)
+        emotionRecord.update(
+                request.getRecord(),
+                request.getEmotion_name(),
+                request.getEmoji_emotion(),
+                request.getMain_color(),
+                request.getSub_color(),
+                request.getText_color(),
+                request.getPosition_x(),
+                request.getPosition_y(),
+                request.getAi_feedback_count()
+        );
+
+        // 공유 상태도 함께 업데이트
+        if (request.getIs_shared() != null) {
+            emotionRecord.updateSharedStatus(request.getIs_shared());
+        }
 
         // Response로 변환하여 반환
         return EmotionUpdateResponse.from(emotionRecord);
