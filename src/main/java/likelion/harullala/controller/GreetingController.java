@@ -5,48 +5,45 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import likelion.harullala.domain.GreetingContext;
 import likelion.harullala.dto.ApiSuccess;
-import likelion.harullala.dto.FriendInviteGreetingResponse;
-import likelion.harullala.dto.HomeGreetingResponse;
-import likelion.harullala.service.FriendInviteGreetingService;
-import likelion.harullala.service.HomeGreetingService;
+import likelion.harullala.dto.GreetingResponse;
+import likelion.harullala.service.GreetingService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 홈 화면 API 컨트롤러
+ * 통합 AI 인사말 API 컨트롤러
  */
 @RestController
-@RequestMapping("/api/v1/home")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
-public class HomeController {
+public class GreetingController {
 
-    private final HomeGreetingService homeGreetingService;
-    private final FriendInviteGreetingService friendInviteGreetingService;
+    private final GreetingService greetingService;
 
     /**
-     * 홈 화면 AI 인사말 조회
-     * GET /api/v1/home/greeting
+     * AI 인사말 조회 (컨텍스트 기반)
+     * GET /api/v1/greeting?context=home
+     * GET /api/v1/greeting?context=friend-invite
+     * GET /api/v1/greeting?context=friend-reminder
      */
     @GetMapping("/greeting")
-    public ResponseEntity<ApiSuccess<HomeGreetingResponse>> getHomeGreeting() {
-        Long userId = getCurrentUserId();
-        HomeGreetingResponse response = homeGreetingService.generateGreeting(userId);
+    public ResponseEntity<ApiSuccess<GreetingResponse>> getGreeting(
+            @RequestParam String context) {
         
-        return ResponseEntity.ok(ApiSuccess.of(response, "홈 인사말을 생성했습니다."));
-    }
-
-    /**
-     * 친구 초대 페이지 AI 멘트 조회
-     * GET /api/v1/home/friend-invite-greeting
-     */
-    @GetMapping("/friend-invite-greeting")
-    public ResponseEntity<ApiSuccess<FriendInviteGreetingResponse>> getFriendInviteGreeting() {
         Long userId = getCurrentUserId();
-        FriendInviteGreetingResponse response = friendInviteGreetingService.generateInviteGreeting(userId);
         
-        return ResponseEntity.ok(ApiSuccess.of(response, "친구 초대 멘트를 생성했습니다."));
+        // String을 GreetingContext로 변환 (유효하지 않으면 예외 발생)
+        GreetingContext greetingContext = GreetingContext.fromValue(context);
+        
+        GreetingResponse response = greetingService.generateGreeting(userId, greetingContext);
+        
+        return ResponseEntity.ok(
+            ApiSuccess.of(response, greetingContext.getDescription() + " 인사말을 생성했습니다.")
+        );
     }
 
     /**
