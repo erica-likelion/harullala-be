@@ -215,11 +215,9 @@ public class ChatGptClient {
             
             규칙:
             - 캐릭터의 개성 있는 말투 사용
-            - 3-4문장 이내로 간결하게
-            - 사용자의 이번 달 감정 패턴을 언급하면서 응원
+            - 1문장으로 짧고 간결하게 (최대 30자 이내)
             - 긍정적이고 따뜻한 톤
             - 진정성 있고 공감하는 느낌
-            - 다음 달도 함께하자는 격려
             """, characterName, characterTag, characterDescription, reportSummary);
     }
 }
