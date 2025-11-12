@@ -1,7 +1,6 @@
 package likelion.harullala.service;
 
 import likelion.harullala.domain.Character;
-import likelion.harullala.domain.EmojiEmotion;
 import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.domain.UserCharacter;
 import likelion.harullala.dto.EmotionReportCharacterMessageResponse;
@@ -105,9 +104,8 @@ public class EmotionReportService {
                     List<EmotionRecord> emotionRecords = entry.getValue();
                     int count = emotionRecords.size();
                     
-                    // 첫 번째 레코드의 색상 및 카테고리 사용
+                    // 첫 번째 레코드의 색상 사용
                     EmotionRecord firstRecord = emotionRecords.get(0);
-                    var emojiEmotion = firstRecord.getEmojiEmotion();
                     String mainColor = firstRecord.getMainColor();
                     String subColor = firstRecord.getSubColor();
                     String textColor = firstRecord.getTextColor();
@@ -117,7 +115,6 @@ public class EmotionReportService {
                     
                     return EmotionReportTopEmotionsResponse.EmotionStat.builder()
                             .emotion_name(emotionName)
-                            .emoji_emotion(emojiEmotion)
                             .count(count)
                             .main_color(mainColor)
                             .sub_color(subColor)
@@ -156,7 +153,6 @@ public class EmotionReportService {
                     .avg_position_x(0.5) // 중앙값
                     .avg_position_y(0.5) // 중앙값
                     .representative_emotion("없음") // 대표 감정 없음
-                    .emoji_emotion(null)
                     .main_color("#808080") // 회색
                     .sub_color("#808080") // 회색
                     .text_color("#000000") // 검정
@@ -182,7 +178,6 @@ public class EmotionReportService {
         // 가장 많이 사용된 감정 찾기 (대표 감정)
         Map.Entry<String, List<EmotionRecord>> mostFrequentEmotion = findMostFrequentEmotion(records);
         String representativeEmotion = "없음";
-        EmojiEmotion emojiEmotion = null;
         String mainColor = "#808080";
         String subColor = "#808080";
         String textColor = "#000000";
@@ -190,7 +185,6 @@ public class EmotionReportService {
         if (mostFrequentEmotion != null && !mostFrequentEmotion.getValue().isEmpty()) {
             representativeEmotion = mostFrequentEmotion.getKey();
             EmotionRecord representativeRecord = mostFrequentEmotion.getValue().get(0);
-            emojiEmotion = representativeRecord.getEmojiEmotion();
             mainColor = representativeRecord.getMainColor();
             subColor = representativeRecord.getSubColor();
             textColor = representativeRecord.getTextColor();
@@ -201,7 +195,6 @@ public class EmotionReportService {
                 .avg_position_x(Math.round(avgX * 100.0) / 100.0) // 소수점 2자리
                 .avg_position_y(Math.round(avgY * 100.0) / 100.0)
                 .representative_emotion(representativeEmotion)
-                .emoji_emotion(emojiEmotion)
                 .main_color(mainColor)
                 .sub_color(subColor)
                 .text_color(textColor)
@@ -274,7 +267,6 @@ public class EmotionReportService {
                     String emotionName = topEmotion.getKey();
                     List<EmotionRecord> emotionRecords = topEmotion.getValue();
                     EmotionRecord firstRecord = emotionRecords.get(0);
-                    var emojiEmotion = firstRecord.getEmojiEmotion();
                     String mainColor = firstRecord.getMainColor();
                     String subColor = firstRecord.getSubColor();
                     String textColor = firstRecord.getTextColor();
@@ -283,7 +275,6 @@ public class EmotionReportService {
                     return EmotionReportTimePatternResponse.TimeSlot.builder()
                             .time_range(getTimeRangeLabel(timeSlot))
                             .emotion_name(emotionName)
-                            .emoji_emotion(emojiEmotion)
                             .count(count)
                             .percentage(Math.round(percentage * 10) / 10.0)
                             .main_color(mainColor)

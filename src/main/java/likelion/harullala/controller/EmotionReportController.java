@@ -9,6 +9,8 @@ import likelion.harullala.service.EmotionReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -40,8 +42,7 @@ public class EmotionReportController {
             @RequestParam(required = false) String month,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
 
         EmotionReportComparisonResponse response = 
                 emotionReportService.compareMonthlyEmotions(userId, month);
@@ -72,8 +73,7 @@ public class EmotionReportController {
             @RequestParam(required = false) String month,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출 (현재는 임시로 1L 사용)
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
 
         EmotionReportTopEmotionsResponse response = 
                 emotionReportService.getTopEmotions(userId, month);
@@ -101,8 +101,7 @@ public class EmotionReportController {
             @RequestParam(required = false) String month,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
 
         // 비교 데이터 가져오기
         EmotionReportComparisonResponse comparisonData = 
@@ -141,8 +140,7 @@ public class EmotionReportController {
             @RequestParam(required = false) String month,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
 
         EmotionReportTimePatternResponse response = 
                 emotionReportService.getTimePattern(userId, month);
@@ -172,8 +170,7 @@ public class EmotionReportController {
             @RequestParam(required = false) String month,
             @RequestHeader("Authorization") String authorizationHeader
     ) {
-        // TODO: JWT 토큰에서 userId 추출
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
 
         EmotionReportCharacterMessageResponse response = 
                 emotionReportService.generateCharacterMessage(userId, month);
@@ -194,5 +191,18 @@ public class EmotionReportController {
             EmotionReportComparisonResponse comparison,
             EmotionReportTopEmotionsResponse topEmotions
     ) {}
+
+    /**
+     * 현재 인증된 사용자 ID 가져오기
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof likelion.harullala.config.security.CustomUserDetails) {
+            likelion.harullala.config.security.CustomUserDetails userDetails = 
+                (likelion.harullala.config.security.CustomUserDetails) authentication.getPrincipal();
+            return userDetails.getUser().getId();
+        }
+        throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
+    }
 }
 
