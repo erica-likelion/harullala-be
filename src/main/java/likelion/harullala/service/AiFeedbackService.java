@@ -27,14 +27,7 @@ public class AiFeedbackService {
     private final ChatGptClient chatGptClient;
     private final NotificationService notificationService;
 
-        // TODO: 실제 인증 시스템으로 교체 필요
-        // 현재는 개발용으로 하드코딩된 사용자 ID 사용
-        private Long currentUserId() {
-            return 1L;
-        }
-
-    public FeedbackDto createOrRegenerate(CreateFeedbackRequest req) {
-        Long requester = currentUserId();
+    public FeedbackDto createOrRegenerate(Long requester, CreateFeedbackRequest req) {
 
         // 실제 테이블에서 데이터 가져오기
         var rec = recordReader.findActiveRecord(req.recordId());
@@ -86,8 +79,7 @@ public class AiFeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public FeedbackDto fetchByRecordId(Long recordId) {
-        Long requester = currentUserId();
+    public FeedbackDto fetchByRecordId(Long requester, Long recordId) {
 
         var rec = recordReader.findActiveRecord(recordId);
         if (rec == null) {
