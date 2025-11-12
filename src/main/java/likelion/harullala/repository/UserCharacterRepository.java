@@ -20,7 +20,7 @@ public interface UserCharacterRepository extends JpaRepository<UserCharacter, Lo
      */
     @Query("SELECT uc FROM UserCharacter uc " +
            "JOIN FETCH uc.selectedCharacter " +
-           "WHERE uc.user.id = :userId AND uc.active = true")
+           "WHERE uc.user.id = :userId")
     Optional<UserCharacter> findActiveByUserId(@Param("userId") Long userId);
 
     @Modifying
