@@ -13,6 +13,7 @@ public class SentFriendRequestDto {
     private Long requestId;
     private String receiverNickname;
     private String receiverConnectCode;
+    private String receiverProfileImageUrl;
     private LocalDateTime createdAt;
 }
 
