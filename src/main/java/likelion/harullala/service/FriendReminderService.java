@@ -126,26 +126,33 @@ public class FriendReminderService {
      */
     private String generateWithAI(Character character, int friendCount, int recordedCount, boolean hasUnrecorded) {
         String characterName = character != null ? character.getName() : "상담사";
+        String characterTag = character != null && character.getTag() != null
+                ? character.getTag()
+                : "";
         String characterDescription = character != null && character.getDescription() != null
                 ? character.getDescription()
-                : "친절하고 공감적인 상담사";
+                : "현재 상황을 알려주는 알리미";
         
         String prompt;
         
         if (friendCount == 0) {
             // 친구가 없을 때
             prompt = String.format("""
-                당신은 '%s' 캐릭터입니다.
+                당신은 '%s'(%s) 캐릭터입니다.
                 캐릭터 성격: %s
                 
                 사용자에게 아직 친구가 없다는 것을 알려주고, Pico World 친구를 초대하면 더 재미있고 5명까지 초대가 가능하다는 것을 캐릭터의 말투로 한 줄메시지를 작성해주세요.
                 (예: "아직 친구가 없네! 친구를 초대해서 함께 기록하면 더 재밌을 거야~")
-                """, characterName, characterDescription);
+                
+                규칙:
+                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+                - 순수한 텍스트만 사용
+                """, characterName, characterTag, characterDescription);
         } else if (hasUnrecorded) {
             // 친구가 아직 기록 안 했을 때
             int unrecordedCount = friendCount - recordedCount;
             prompt = String.format("""
-                당신은 '%s' 캐릭터입니다.
+                당신은 '%s'(%s) 캐릭터입니다.
                 캐릭터 성격: %s
                 
                 현재 상황: 친구 %d명 중 %d명이 아직 오늘 감정 기록을 작성하지 않았습니다.
@@ -155,21 +162,29 @@ public class FriendReminderService {
                 올바른 예시:
                 - "친구들 중 아직 기록 안 한 사람이 있네! 꼬박 쓰라고 해줘~"
                 - "몇 명이 아직 기록을 안 썼어! 우리 친구들 응원할까?"
-                - "친구들 기록 상태를 보니 아직 안 쓴 사람들이 있구나~ 격려해봐!"
+                - "친구들 기록 상태를 보니 아직 안 쓴 사람들이 있네네"
                 
-                주의: "너가 친구들에게 쓰라고 해줘"가 아니라, "친구들이 아직 안 썼다는 상황을 알려주고 격려"하는 톤으로 작성해주세요.
-                """, characterName, characterDescription, friendCount, unrecordedCount);
+                주의: "너가 친구들에게 쓰라고 해줘"가 아니라, "친구들이 아직 안 썼다는 상황을 알려주는 톤으로 작성해주세요.
+                
+                규칙:
+                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+                - 순수한 텍스트만 사용
+                """, characterName, characterTag, characterDescription, friendCount, unrecordedCount);
         } else {
             // 모두 기록했을 때
             prompt = String.format("""
-                당신은 '%s' 캐릭터입니다.
+                당신은 '%s'(%s) 캐릭터입니다.
                 캐릭터 성격: %s
                 
                 현재 상황: 친구 %d명이 모두 오늘 감정 기록을 작성했습니다!
                 
-                위 상황을 축하하며 격려하는 캐릭터의 말투로 한 줄 메시지를 작성해주세요.
+                위 상황을 축하하는 캐릭터의 말투로 한 줄 메시지를 작성해주세요.
                 (예: "모두 기록 잘했네! 정말 대단해!")
-                """, characterName, characterDescription, friendCount);
+                
+                규칙:
+                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+                - 순수한 텍스트만 사용
+                """, characterName, characterTag, characterDescription, friendCount);
         }
         
         return chatGptClient.generateCustomFeedback(prompt);

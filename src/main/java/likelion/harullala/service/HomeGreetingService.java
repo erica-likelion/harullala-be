@@ -131,6 +131,8 @@ public class HomeGreetingService {
                 - 위 캐릭터의 성격과 말투를 정확히 반영
                 - "오늘 이미 기록했다"는 내용을 자연스럽게 전달
                 - 캐릭터의 개성이 드러나는 표현 사용
+                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+                - 순수한 텍스트만 사용
                 """, characterName, characterTag, characterDescription);
         } else {
             // 아직 기록 안 했을 때
@@ -147,6 +149,8 @@ public class HomeGreetingService {
                 - 위 캐릭터의 성격과 말투를 정확히 반영
                 - 기분을 묻거나 기록을 가볍게 유도
                 - 강요하지 말고 캐릭터답게 자연스럽게
+                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+                - 순수한 텍스트만 사용
                 """, characterName, characterTag, characterDescription);
         }
         
