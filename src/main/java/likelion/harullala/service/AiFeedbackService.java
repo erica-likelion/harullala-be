@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import likelion.harullala.domain.AiFeedback;
+import likelion.harullala.domain.NotificationType;
 import likelion.harullala.dto.CreateFeedbackRequest;
 import likelion.harullala.dto.FeedbackDto;
 import likelion.harullala.exception.ApiException;
-import likelion.harullala.domain.NotificationType;
 import likelion.harullala.infra.ChatGptClient;
 import likelion.harullala.infra.RecordReader;
 import likelion.harullala.repository.AiFeedbackRepository;
@@ -100,7 +100,7 @@ public class AiFeedbackService {
                 .feedbackId(f.getFeedbackId())
                 .recordId(f.getRecordId())
                 .aiReply(f.getAiReply())
-                .attempts(new FeedbackDto.Attempts(used, Math.max(0, LIMIT - used), LIMIT))
+                .attemptsUsed(used)
                 .createdAt(f.getCreatedAt().toString())
                 .updatedAt(f.getUpdatedAt().toString())
                 .build();

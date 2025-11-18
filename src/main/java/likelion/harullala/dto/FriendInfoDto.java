@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class FriendInfoDto {
     private String nickname;
     private String connectCode;
+    private String profileImageUrl;
+    private Boolean hasRecordedToday;
 }

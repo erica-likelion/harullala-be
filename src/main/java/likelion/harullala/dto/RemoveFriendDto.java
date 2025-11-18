@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RemoveFriendDto {
-    private Long friendId;
+    private String connectCode;
 }

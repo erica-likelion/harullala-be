@@ -3,10 +3,13 @@ package likelion.harullala.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import likelion.harullala.domain.Character;
 import likelion.harullala.domain.GreetingContext;
+import likelion.harullala.domain.UserCharacter;
 import likelion.harullala.dto.FriendInviteGreetingResponse;
 import likelion.harullala.dto.GreetingResponse;
 import likelion.harullala.dto.HomeGreetingResponse;
+import likelion.harullala.repository.UserCharacterRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -21,6 +24,7 @@ public class GreetingService {
     private final HomeGreetingService homeGreetingService;
     private final FriendInviteGreetingService friendInviteGreetingService;
     private final FriendReminderService friendReminderService;
+    private final UserCharacterRepository userCharacterRepo;
     
     /**
      * 컨텍스트에 따른 AI 인사말 생성
@@ -67,12 +71,25 @@ public class GreetingService {
     private GreetingResponse generateFriendReminderGreeting(Long userId) {
         String message = friendReminderService.generateReminder(userId);
         
+        // 현재 캐릭터 조회
+        Character character = getCurrentCharacter(userId);
+        String characterName = character != null ? character.getName() : "피코";
+        
         return GreetingResponse.builder()
                 .message(message)
-                .characterName(null) // 리마인더는 characterName 별도 반환 없음
+                .characterName(characterName)
                 .hasRecordedToday(null)
                 .context(GreetingContext.FRIEND_REMINDER)
                 .build();
+    }
+    
+    /**
+     * 현재 캐릭터 조회
+     */
+    private Character getCurrentCharacter(Long userId) {
+        return userCharacterRepo.findByUserId(userId)
+                .map(UserCharacter::getSelectedCharacter)
+                .orElse(null);
     }
 }
 
