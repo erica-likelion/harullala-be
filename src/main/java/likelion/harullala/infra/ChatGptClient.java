@@ -91,8 +91,8 @@ public class ChatGptClient {
             규칙:
             - 캐릭터의 개성 있는 말투 사용
             - 2-3문장 이내로 간결하게
-            - 감정을 인정하고 응원하는 톤
-            - 진정성 있고 따뜻한 느낌
+            - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+            - 순수한 텍스트만 사용
             """, characterName, characterTag, characterDescription, emotionText);
     }
     
@@ -215,11 +215,11 @@ public class ChatGptClient {
             
             규칙:
             - 캐릭터의 개성 있는 말투 사용
-            - 3-4문장 이내로 간결하게
+            - 1-2문장 이내로 간결하게
             - 사용자의 이번 달 감정 패턴을 언급하면서 응원
-            - 긍정적이고 따뜻한 톤
-            - 진정성 있고 공감하는 느낌
-            - 다음 달도 함께하자는 격려
+            - 다음 달도 함께하자는 말투로 작성
+            - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+            - 순수한 텍스트만 사용
             """, characterName, characterTag, characterDescription, reportSummary);
     }
 }
