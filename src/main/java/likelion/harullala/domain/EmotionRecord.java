@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity     // 감정기록 JAP 엔티티 - 데이터베이스 테이블과 매핑
 @Table(name = "emotion_record") // 테이블 이름 지정
@@ -54,13 +55,13 @@ public class EmotionRecord {
 
     @PrePersist // 저장 전 실행
     protected void onCreate() {
-        createdAt = LocalDateTime.now(); // 생성 시간 설정
-        updatedAt = LocalDateTime.now(); // 수정 시간 설정
+        createdAt = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 생성 시간 설정 (KST)
+        updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 수정 시간 설정 (KST)
     }
 
     @PreUpdate // 수정 전 실행
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now(); // 수정 시간 설정
+        updatedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul")); // 수정 시간 설정 (KST)
     }
 
     /**

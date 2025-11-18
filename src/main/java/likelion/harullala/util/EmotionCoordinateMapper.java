@@ -39,7 +39,7 @@ public class EmotionCoordinateMapper {
         
         // ========== 3행: 조금 불안한 (Y=0.67) ==========
         EMOTION_COORDINATES.put("서운한", new Coordinate(0.0, 0.67));
-        EMOTION_COORDINATES.put("무덤담한", new Coordinate(0.17, 0.67));
+        EMOTION_COORDINATES.put("무덤덤한", new Coordinate(0.17, 0.67));
         EMOTION_COORDINATES.put("담담한", new Coordinate(0.33, 0.67));
         EMOTION_COORDINATES.put("괜찮은", new Coordinate(0.5, 0.67));
         EMOTION_COORDINATES.put("안심되는", new Coordinate(0.67, 0.67));
@@ -48,9 +48,9 @@ public class EmotionCoordinateMapper {
         
         // ========== 4행: 조금 편안한 (Y=0.5) ==========
         EMOTION_COORDINATES.put("우울한", new Coordinate(0.0, 0.5));
-        EMOTION_COORDINATES.put("평온한", new Coordinate(0.17, 0.5));
-        EMOTION_COORDINATES.put("잔잔한", new Coordinate(0.33, 0.5));
-        EMOTION_COORDINATES.put("어유로운", new Coordinate(0.5, 0.5));
+        EMOTION_COORDINATES.put("잔잔한", new Coordinate(0.17, 0.5));
+        EMOTION_COORDINATES.put("평온한", new Coordinate(0.33, 0.5));
+        EMOTION_COORDINATES.put("여유로운", new Coordinate(0.5, 0.5));
         EMOTION_COORDINATES.put("좋은", new Coordinate(0.67, 0.5));
         EMOTION_COORDINATES.put("흐뭇한", new Coordinate(0.83, 0.5));
         EMOTION_COORDINATES.put("행복한", new Coordinate(1.0, 0.5));
@@ -70,7 +70,7 @@ public class EmotionCoordinateMapper {
         EMOTION_COORDINATES.put("고요한", new Coordinate(0.33, 0.17));
         EMOTION_COORDINATES.put("느긋한", new Coordinate(0.5, 0.17));
         EMOTION_COORDINATES.put("만족한", new Coordinate(0.67, 0.17));
-        EMOTION_COORDINATES.put("기쁨", new Coordinate(0.83, 0.17));
+        EMOTION_COORDINATES.put("기쁜", new Coordinate(0.83, 0.17));
         EMOTION_COORDINATES.put("황홀한", new Coordinate(1.0, 0.17));
         
         // ========== 7행: 완전 편안한 (Y=0.0) ==========
