@@ -195,8 +195,8 @@ public class FriendServiceImpl implements FriendService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        User friend = userRepository.findById(requestDto.getFriendId())
-                .orElseThrow(() -> new IllegalArgumentException("친구를 찾을 수 없습니다."));
+        User friend = userRepository.findByConnectCode(requestDto.getConnectCode())
+                .orElseThrow(() -> new IllegalArgumentException("해당 초대 코드를 가진 사용자를 찾을 수 없습니다."));
 
         // 친구 관계가 존재하는지 확인 (ACCEPTED 상태)
         FriendRelationship relationship = friendRelationshipRepository.findByUsersAndStatus(user, friend, FriendStatus.ACCEPTED)
