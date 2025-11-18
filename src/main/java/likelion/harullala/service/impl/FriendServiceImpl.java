@@ -1,9 +1,11 @@
 package likelion.harullala.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ import likelion.harullala.dto.RemoveFriendDto;
 import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
 import likelion.harullala.dto.SentFriendRequestDto;
+import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
 import likelion.harullala.service.FriendService;
@@ -32,6 +35,8 @@ public class FriendServiceImpl implements FriendService {
     private final FriendRelationshipRepository friendRelationshipRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final EmotionRecordRepository emotionRecordRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -74,10 +79,11 @@ public class FriendServiceImpl implements FriendService {
             throw new IllegalArgumentException("해당 사용자가 이미 친구 요청을 보냈습니다. 받은 친구 요청을 확인해주세요.");
         }
 
-        // 기존 관계가 있는지 확인하고 삭제 (PENDING이 아닌 경우)
+        // 기존 관계가 있는지 확인하고 삭제 (PENDING이 아닌 경우 - REJECTED, CANCELLED 등)
         Optional<FriendRelationship> existingRelationship = friendRelationshipRepository.findByUsers(requester, receiver);
         if (existingRelationship.isPresent() && !existingRelationship.get().isPending()) {
             friendRelationshipRepository.delete(existingRelationship.get());
+            entityManager.flush(); // 삭제를 즉시 반영하여 unique constraint 위반 방지
         }
 
         // user1 < user2 순서로 정규화
@@ -192,8 +198,8 @@ public class FriendServiceImpl implements FriendService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        User friend = userRepository.findById(requestDto.getFriendId())
-                .orElseThrow(() -> new IllegalArgumentException("친구를 찾을 수 없습니다."));
+        User friend = userRepository.findByConnectCode(requestDto.getConnectCode())
+                .orElseThrow(() -> new IllegalArgumentException("해당 초대 코드를 가진 사용자를 찾을 수 없습니다."));
 
         // 친구 관계가 존재하는지 확인 (ACCEPTED 상태)
         FriendRelationship relationship = friendRelationshipRepository.findByUsersAndStatus(user, friend, FriendStatus.ACCEPTED)
@@ -210,13 +216,25 @@ public class FriendServiceImpl implements FriendService {
 
         List<FriendRelationship> relationships = friendRelationshipRepository.findAcceptedFriendsByUser(user);
 
+        // 오늘 날짜 범위 계산
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+
         return relationships.stream()
                 .limit(5) // 최대 5명으로 제한
                 .map(relationship -> {
                     User friend = relationship.getOtherUser(userId);
+                    
+                    // 오늘 기록 여부 확인
+                    Long recordCount = emotionRecordRepository.countByUserIdAndDateRange(
+                            friend.getId(), startOfDay, endOfDay);
+                    Boolean hasRecordedToday = recordCount > 0;
+                    
                     return new FriendInfoDto(
                             friend.getNickname(),
-                            friend.getConnectCode()
+                            friend.getConnectCode(),
+                            friend.getProfileImageUrl(),
+                            hasRecordedToday
                     );
                 })
                 .collect(Collectors.toList());
@@ -234,6 +252,7 @@ public class FriendServiceImpl implements FriendService {
                         relationship.getId(),
                         relationship.getRequester().getNickname(),
                         relationship.getRequester().getConnectCode(),
+                        relationship.getRequester().getProfileImageUrl(),
                         relationship.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
@@ -253,6 +272,7 @@ public class FriendServiceImpl implements FriendService {
                             relationship.getId(),
                             receiver.getNickname(),
                             receiver.getConnectCode(),
+                            receiver.getProfileImageUrl(),
                             relationship.getCreatedAt()
                     );
                 })

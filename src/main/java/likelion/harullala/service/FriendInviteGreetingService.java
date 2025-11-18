@@ -109,6 +109,8 @@ public class FriendInviteGreetingService {
             - 위 캐릭터의 성격과 말투를 정확히 반영
             - 친구와 함께 기록하는 것을 유도하는 톤
             - 강요하지 말고 캐릭터답게 자연스럽게
+            - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
+            - 순수한 텍스트만 사용
             """, characterName, characterTag, characterDescription);
         
         return chatGptClient.generateCustomFeedback(prompt);
