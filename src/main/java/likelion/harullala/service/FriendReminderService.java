@@ -39,11 +39,6 @@ public class FriendReminderService {
         List<Long> friendIds = getFriendIds(userId);
         int totalFriends = friendIds.size();
         
-        if (totalFriends == 0) {
-            // 친구가 없으면 기본 메시지
-            return "아직 친구가 없네! 친구를 추가해서 함께 기록해봐~";
-        }
-        
         // 2. 오늘 기록 작성한 친구 수 조회
         int recordedFriends = countTodayRecordedFriends(friendIds);
         boolean hasUnrecorded = recordedFriends < totalFriends;
@@ -61,7 +56,7 @@ public class FriendReminderService {
         if (cached != null && !cached.isExpired()) {
             message = cached.getMessage();
         } else {
-            // 6. AI로 메시지 생성
+            // 6. AI로 메시지 생성 (친구가 없을 때도 캐릭터에 맞게 생성)
             message = generateWithAI(character, totalFriends, recordedFriends, hasUnrecorded);
             
             // 7. 캐시 저장

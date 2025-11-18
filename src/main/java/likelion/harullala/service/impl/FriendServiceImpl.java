@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,7 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EmotionRecordRepository emotionRecordRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -77,10 +79,11 @@ public class FriendServiceImpl implements FriendService {
             throw new IllegalArgumentException("해당 사용자가 이미 친구 요청을 보냈습니다. 받은 친구 요청을 확인해주세요.");
         }
 
-        // 기존 관계가 있는지 확인하고 삭제 (PENDING이 아닌 경우)
+        // 기존 관계가 있는지 확인하고 삭제 (PENDING이 아닌 경우 - REJECTED, CANCELLED 등)
         Optional<FriendRelationship> existingRelationship = friendRelationshipRepository.findByUsers(requester, receiver);
         if (existingRelationship.isPresent() && !existingRelationship.get().isPending()) {
             friendRelationshipRepository.delete(existingRelationship.get());
+            entityManager.flush(); // 삭제를 즉시 반영하여 unique constraint 위반 방지
         }
 
         // user1 < user2 순서로 정규화
