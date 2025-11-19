@@ -1,6 +1,5 @@
 package likelion.harullala.service;
 
-import java.time.Instant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import likelion.harullala.exception.ApiException;
 import likelion.harullala.infra.ChatGptClient;
 import likelion.harullala.infra.RecordReader;
 import likelion.harullala.repository.AiFeedbackRepository;
+import likelion.harullala.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -52,12 +52,11 @@ public class AiFeedbackService {
             f.setUserId(rec.userId());
             f.setAttemptsUsed(1);
             f.setAiReply(aiReply);
-            f.setCreatedAt(Instant.now());
-            f.setUpdatedAt(Instant.now());
+            // createdAt, updatedAt은 @PrePersist에서 자동 설정됨
         } else {
             f.setAttemptsUsed(next);
             f.setAiReply(aiReply);
-            f.setUpdatedAt(Instant.now());
+            // updatedAt은 @PreUpdate에서 자동 설정됨
         }
         AiFeedback saved = feedbackRepo.saveAndFlush(f);
         

@@ -22,10 +22,11 @@ public class FriendFeedResponse {
     private String textColor; // Text 색상
     private LocalDateTime createdAt;
     private String authorNickname; // 작성자 닉네임
+    private String authorProfileImageUrl; // 작성자 프로필 이미지 URL
     private boolean isRead; // 현재 사용자가 읽었는지 여부
     private long readCount; // 총 읽은 사람 수
 
-    public static FriendFeedResponse from(EmotionRecord emotionRecord, String authorNickname, boolean isRead, long readCount) {
+    public static FriendFeedResponse from(EmotionRecord emotionRecord, String authorNickname, String authorProfileImageUrl, boolean isRead, long readCount) {
         return FriendFeedResponse.builder()
                 .recordId(emotionRecord.getRecordId())
                 .record(emotionRecord.getRecord())
@@ -35,6 +36,7 @@ public class FriendFeedResponse {
                 .textColor(emotionRecord.getTextColor())
                 .createdAt(emotionRecord.getCreatedAt())
                 .authorNickname(authorNickname)
+                .authorProfileImageUrl(authorProfileImageUrl)
                 .isRead(isRead)
                 .readCount(readCount)
                 .build();
