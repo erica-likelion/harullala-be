@@ -38,9 +38,10 @@ public class FriendInviteGreetingService {
         // 1. 현재 캐릭터 조회
         Character character = getCurrentCharacter(userId);
         String characterName = character != null ? character.getName() : "피코";
+        Long characterId = character != null ? character.getId() : null;
         
-        // 2. 캐시 키 생성 (userId + 날짜)
-        String cacheKey = createCacheKey(userId);
+        // 2. 캐시 키 생성 (userId + 캐릭터ID + 날짜)
+        String cacheKey = createCacheKey(userId, characterId);
         
         // 3. 캐시 확인 (오늘 자정까지 유효)
         CachedGreeting cached = cache.get(cacheKey);
@@ -77,11 +78,12 @@ public class FriendInviteGreetingService {
     }
     
     /**
-     * 캐시 키 생성 (userId + 날짜)
+     * 캐시 키 생성 (userId + 캐릭터ID + 날짜)
+     * 캐릭터 변경 시에도 새로 생성되도록 캐릭터 ID 포함
      */
-    private String createCacheKey(Long userId) {
+    private String createCacheKey(Long userId, Long characterId) {
         String today = LocalDateTime.now().toLocalDate().toString(); // yyyy-MM-dd
-        return "invite_" + userId + "_" + today;
+        return "invite_" + userId + "_" + (characterId != null ? characterId : "null") + "_" + today;
     }
     
     /**
@@ -104,14 +106,19 @@ public class FriendInviteGreetingService {
             
             사용자에게 친구와 함께 감정 기록을 하면 좋다는 것을 캐릭터의 말투로 짧게 한 줄로 말해주세요.
             
+            중요:
+            - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+            - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+            - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+            
             규칙:
             - 반드시 한 줄로 짧게 (10-15자)
-            - 위 캐릭터의 성격과 말투를 정확히 반영
+            - 위 캐릭터의 tag와 description에 기반한 성격과 말투를 정확히 반영
             - 친구와 함께 기록하는 것을 유도하는 톤
             - 강요하지 말고 캐릭터답게 자연스럽게
             - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
             - 순수한 텍스트만 사용
-            """, characterName, characterTag, characterDescription);
+            """, characterName, characterTag, characterDescription, characterTag, characterDescription);
         
         return chatGptClient.generateCustomFeedback(prompt);
     }

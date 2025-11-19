@@ -43,9 +43,10 @@ public class HomeGreetingService {
         // 2. 현재 캐릭터 조회
         Character character = getCurrentCharacter(userId);
         String characterName = character != null ? character.getName() : "피코";
+        Long characterId = character != null ? character.getId() : null;
         
-        // 3. 캐시 키 생성 (userId + 날짜 + 기록여부)
-        String cacheKey = createCacheKey(userId, hasRecordedToday);
+        // 3. 캐시 키 생성 (userId + 캐릭터ID + 날짜 + 기록여부)
+        String cacheKey = createCacheKey(userId, characterId, hasRecordedToday);
         
         // 4. 캐시 확인 (오늘 자정까지 유효)
         CachedGreeting cached = cache.get(cacheKey);
@@ -94,12 +95,13 @@ public class HomeGreetingService {
     }
     
     /**
-     * 캐시 키 생성 (userId + 날짜 + 기록여부)
+     * 캐시 키 생성 (userId + 캐릭터ID + 날짜 + 기록여부)
+     * 캐릭터 변경 시에도 새로 생성되도록 캐릭터 ID 포함
      * 날짜를 포함하여 자정이 지나면 자동으로 새로운 키 생성
      */
-    private String createCacheKey(Long userId, boolean hasRecorded) {
+    private String createCacheKey(Long userId, Long characterId, boolean hasRecorded) {
         String today = LocalDateTime.now().toLocalDate().toString(); // yyyy-MM-dd
-        return userId + "_" + today + "_" + hasRecorded;
+        return userId + "_" + (characterId != null ? characterId : "null") + "_" + today + "_" + hasRecorded;
     }
     
     /**
@@ -126,14 +128,19 @@ public class HomeGreetingService {
                 
                 사용자에게 오늘 이미 기록을 완료했다는 것을 캐릭터의 말투와 성격에 맞게 한 줄로 짧게 알려주세요.
                 
+                중요:
+                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                
                 규칙:
                 - 반드시 한 줄로 짧게 (10-15자)
-                - 위 캐릭터의 성격과 말투를 정확히 반영
+                - 위 캐릭터의 tag와 description에 기반한 성격과 말투를 정확히 반영
                 - "오늘 이미 기록했다"는 내용을 자연스럽게 전달
-                - 캐릭터의 개성이 드러나는 표현 사용
+                - 캐릭터의 개성이 명확히 드러나는 표현 사용
                 - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
                 - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription);
+                """, characterName, characterTag, characterDescription, characterTag, characterDescription);
         } else {
             // 아직 기록 안 했을 때
             prompt = String.format("""
@@ -144,14 +151,19 @@ public class HomeGreetingService {
                 
                 사용자에게 오늘 기분을 물어보거나 감정 기록을 유도하는 캐릭터의 말투로 한 줄 짧게 인사해주세요.
                 
+                중요:
+                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                
                 규칙:
                 - 반드시 한 줄로 짧게 (10-15자)
-                - 위 캐릭터의 성격과 말투를 정확히 반영
+                - 위 캐릭터의 tag와 description에 기반한 성격과 말투를 정확히 반영
                 - 기분을 묻거나 기록을 가볍게 유도
                 - 강요하지 말고 캐릭터답게 자연스럽게
                 - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
                 - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription);
+                """, characterName, characterTag, characterDescription, characterTag, characterDescription);
         }
         
         return chatGptClient.generateCustomFeedback(prompt);

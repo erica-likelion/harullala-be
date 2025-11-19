@@ -45,9 +45,10 @@ public class FriendReminderService {
         
         // 3. 현재 캐릭터 조회
         Character character = getCurrentCharacter(userId);
+        Long characterId = character != null ? character.getId() : null;
         
-        // 4. 캐시 키 생성
-        String cacheKey = createCacheKey(userId, totalFriends, recordedFriends);
+        // 4. 캐시 키 생성 (캐릭터 변경 시에도 새로 생성되도록 캐릭터 ID 포함)
+        String cacheKey = createCacheKey(userId, characterId, totalFriends, recordedFriends);
         
         // 5. 캐시 확인
         CachedMessage cached = cache.get(cacheKey);
@@ -111,9 +112,10 @@ public class FriendReminderService {
     
     /**
      * 캐시 키 생성
+     * 캐릭터 변경, 친구 수 변경, 기록한 친구 수 변경 시 새로 생성
      */
-    private String createCacheKey(Long userId, int friendCount, int recordedCount) {
-        return userId + "_" + friendCount + "_" + recordedCount;
+    private String createCacheKey(Long userId, Long characterId, int friendCount, int recordedCount) {
+        return userId + "_" + (characterId != null ? characterId : "null") + "_" + friendCount + "_" + recordedCount;
     }
     
     /**
@@ -139,10 +141,15 @@ public class FriendReminderService {
                 사용자에게 아직 친구가 없다는 것을 알려주고, Pico World 친구를 초대하면 더 재미있고 5명까지 초대가 가능하다는 것을 캐릭터의 말투로 한 줄메시지를 작성해주세요.
                 (예: "아직 친구가 없네! 친구를 초대해서 함께 기록하면 더 재밌을 거야~")
                 
+                중요:
+                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                
                 규칙:
                 - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
                 - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription);
+                """, characterName, characterTag, characterDescription, characterTag, characterDescription);
         } else if (hasUnrecorded) {
             // 친구가 아직 기록 안 했을 때
             int unrecordedCount = friendCount - recordedCount;
@@ -161,10 +168,15 @@ public class FriendReminderService {
                 
                 주의: "너가 친구들에게 쓰라고 해줘"가 아니라, "친구들이 아직 안 썼다는 상황을 알려주는 톤으로 작성해주세요.
                 
+                중요:
+                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                
                 규칙:
                 - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
                 - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription, friendCount, unrecordedCount);
+                """, characterName, characterTag, characterDescription, friendCount, unrecordedCount, characterTag, characterDescription);
         } else {
             // 모두 기록했을 때
             prompt = String.format("""
@@ -176,10 +188,15 @@ public class FriendReminderService {
                 위 상황을 축하하는 캐릭터의 말투로 한 줄 메시지를 작성해주세요.
                 (예: "모두 기록 잘했네! 정말 대단해!")
                 
+                중요:
+                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                
                 규칙:
                 - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
                 - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription, friendCount);
+                """, characterName, characterTag, characterDescription, friendCount, characterTag, characterDescription);
         }
         
         return chatGptClient.generateCustomFeedback(prompt);
