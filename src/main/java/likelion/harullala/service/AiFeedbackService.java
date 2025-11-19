@@ -1,6 +1,5 @@
 package likelion.harullala.service;
 
-import java.time.Instant;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import likelion.harullala.exception.ApiException;
 import likelion.harullala.infra.ChatGptClient;
 import likelion.harullala.infra.RecordReader;
 import likelion.harullala.repository.AiFeedbackRepository;
+import likelion.harullala.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -52,12 +52,11 @@ public class AiFeedbackService {
             f.setUserId(rec.userId());
             f.setAttemptsUsed(1);
             f.setAiReply(aiReply);
-            f.setCreatedAt(Instant.now());
-            f.setUpdatedAt(Instant.now());
+            // createdAt, updatedAt은 @PrePersist에서 자동 설정됨
         } else {
             f.setAttemptsUsed(next);
             f.setAiReply(aiReply);
-            f.setUpdatedAt(Instant.now());
+            // updatedAt은 @PreUpdate에서 자동 설정됨
         }
         AiFeedback saved = feedbackRepo.saveAndFlush(f);
         
@@ -68,7 +67,7 @@ public class AiFeedbackService {
                 NotificationType.AI_FEEDBACK,
                 "AI 피드백이 도착했어요",
                 "오늘의 감정에 대한 AI 피드백을 확인해보세요",
-                saved.getFeedbackId()
+                saved.getRecordId()  // recordId를 relatedId로 전달 (AI 피드백 조회 API가 recordId를 사용)
             );
         } catch (Exception e) {
             // 알림 전송 실패해도 피드백 생성은 정상 처리

@@ -75,7 +75,7 @@ public class FriendFeedService {
                     boolean isRead = readRecordIds.contains(record.getRecordId());
                     long readCount = feedReadStatusRepository.countByEmotionRecord(record);
                     
-                    return FriendFeedResponse.from(record, author.getNickname(), isRead, readCount);
+                    return FriendFeedResponse.from(record, author.getNickname(), author.getProfileImageUrl(), isRead, readCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -110,7 +110,7 @@ public class FriendFeedService {
         boolean isRead = feedReadStatusRepository.existsByReaderAndEmotionRecord(currentUser, record);
         long readCount = feedReadStatusRepository.countByEmotionRecord(record);
 
-        return FriendFeedResponse.from(record, author.getNickname(), isRead, readCount);
+        return FriendFeedResponse.from(record, author.getNickname(), author.getProfileImageUrl(), isRead, readCount);
     }
 
     /**

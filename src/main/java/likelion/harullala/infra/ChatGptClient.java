@@ -59,7 +59,8 @@ public class ChatGptClient {
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
                 if (!choices.isEmpty()) {
                     Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                    String content = (String) message.get("content");
+                    return cleanResponse(content); // 따옴표, 이모티콘, 마크다운 제거
                 }
             }
             
@@ -88,12 +89,18 @@ public class ChatGptClient {
             위 캐릭터의 말투와 성격에 맞게 짧고 자연스럽게 반응해주세요.
             장황하지 않게, 캐릭터가 직접 말하는 것처럼 대화 형식으로 답변해주세요.
             
+            중요: 
+            - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+            - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+            - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+            
             규칙:
-            - 캐릭터의 개성 있는 말투 사용
+            - 캐릭터의 tag와 description에 기반한 개성 있는 말투를 정확히 반영
             - 2-3문장 이내로 간결하게
+            - 캐릭터의 성격이 명확히 드러나는 표현 사용
             - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
             - 순수한 텍스트만 사용
-            """, characterName, characterTag, characterDescription, emotionText);
+            """, characterName, characterTag, characterDescription, emotionText, characterTag, characterDescription);
     }
     
     /**
@@ -132,7 +139,8 @@ public class ChatGptClient {
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
                 if (!choices.isEmpty()) {
                     Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                    String content = (String) message.get("content");
+                    return cleanResponse(content); // 따옴표, 이모티콘, 마크다운 제거
                 }
             }
             
@@ -175,7 +183,8 @@ public class ChatGptClient {
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
                 if (!choices.isEmpty()) {
                     Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
-                    return (String) message.get("content");
+                    String content = (String) message.get("content");
+                    return cleanResponse(content); // 따옴표, 이모티콘, 마크다운 제거
                 }
             }
             
@@ -186,6 +195,32 @@ public class ChatGptClient {
             // 예외 발생 시 기본 응답
             return "이번 달도 수고했어요! 계속 응원할게요!";
         }
+    }
+    
+    /**
+     * AI 응답에서 따옴표, 이모티콘, 마크다운 제거
+     */
+    private String cleanResponse(String response) {
+        if (response == null) {
+            return "";
+        }
+        
+        // 따옴표 제거 (큰따옴표, 작은따옴표)
+        String cleaned = response.replaceAll("[\"']", "");
+        
+        // 마크다운 제거 (**굵게**, *기울임*, __밑줄__ 등)
+        cleaned = cleaned.replaceAll("\\*\\*([^*]+)\\*\\*", "$1"); // **굵게** -> 굵게
+        cleaned = cleaned.replaceAll("\\*([^*]+)\\*", "$1"); // *기울임* -> 기울임
+        cleaned = cleaned.replaceAll("__([^_]+)__", "$1"); // __밑줄__ -> 밑줄
+        cleaned = cleaned.replaceAll("_([^_]+)_", "$1"); // _기울임_ -> 기울임
+        
+        // 이모티콘 제거 (유니코드 이모티콘 범위)
+        cleaned = cleaned.replaceAll("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+", "");
+        
+        // 앞뒤 공백 제거
+        cleaned = cleaned.trim();
+        
+        return cleaned;
     }
     
     /**
@@ -213,13 +248,18 @@ public class ChatGptClient {
             
             위 리포트를 바탕으로, 캐릭터의 말투와 성격에 맞게 사용자를 응원하고 격려하는 멘트를 해주세요.
             
+            중요:
+            - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
+            - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
+            - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+            
             규칙:
-            - 캐릭터의 개성 있는 말투 사용
+            - 캐릭터의 tag와 description에 기반한 개성 있는 말투를 정확히 반영
             - 1-2문장 이내로 간결하게
             - 사용자의 이번 달 감정 패턴을 언급하면서 응원
             - 다음 달도 함께하자는 말투로 작성
             - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
             - 순수한 텍스트만 사용
-            """, characterName, characterTag, characterDescription, reportSummary);
+            """, characterName, characterTag, characterDescription, reportSummary, characterTag, characterDescription);
     }
 }
