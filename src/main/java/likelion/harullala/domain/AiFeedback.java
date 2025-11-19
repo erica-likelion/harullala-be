@@ -1,12 +1,14 @@
 package likelion.harullala.domain;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
@@ -34,8 +36,19 @@ public class AiFeedback {
     private Integer attemptsUsed = 1;
 
     @Column(nullable = false)
-    private Instant createdAt = Instant.now();
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
-    private Instant updatedAt = Instant.now();
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
