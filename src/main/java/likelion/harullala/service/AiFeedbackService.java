@@ -68,7 +68,7 @@ public class AiFeedbackService {
                 NotificationType.AI_FEEDBACK,
                 "AI 피드백이 도착했어요",
                 "오늘의 감정에 대한 AI 피드백을 확인해보세요",
-                saved.getFeedbackId()
+                saved.getRecordId()  // recordId를 relatedId로 전달 (AI 피드백 조회 API가 recordId를 사용)
             );
         } catch (Exception e) {
             // 알림 전송 실패해도 피드백 생성은 정상 처리
