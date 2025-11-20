@@ -6,11 +6,10 @@ import com.google.firebase.FirebaseOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
 
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * Firebase 초기화 설정
@@ -19,25 +18,31 @@ import java.io.InputStream;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.credentials-path}")
-    private Resource credentialsResource;
+    @Value("${FIREBASE_CREDENTIALS_PATH}")
+    private String firebaseCredentialsPath;  // 예: file:/app/firebase-service-account.json
 
     @PostConstruct
-    public void initialize() {
+    public void init() {
         try {
-            if (FirebaseApp.getApps().isEmpty()) {
-                InputStream serviceAccount = credentialsResource.getInputStream();
-                
+            if (!FirebaseApp.getApps().isEmpty()) {
+                log.info("FirebaseApp already initialized. Skipping.");
+                return;
+            }
+
+            // file: 프리픽스를 포함한 URL로부터 스트림을 연다
+            URL url = new URL(firebaseCredentialsPath);
+            try (InputStream serviceAccount = url.openStream()) {
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                         .build();
 
                 FirebaseApp.initializeApp(options);
-                log.info("Firebase가 성공적으로 초기화되었습니다.");
+                log.info("Firebase 초기화 완료: path={}", firebaseCredentialsPath);
             }
-        } catch (IOException e) {
-            log.error("Firebase 초기화 실패: {}", e.getMessage());
-            log.warn("푸시 알림 기능이 비활성화됩니다. Firebase 설정을 확인해주세요.");
+
+        } catch (Exception e) {
+            log.error("Firebase 초기화 실패: {}", e.getMessage(), e);
+            log.warn("푸시 알림 기능이 비활성화됩니다. Firebase 설정(FIREBASE_CREDENTIALS_PATH)을 확인해주세요.");
         }
     }
 }
