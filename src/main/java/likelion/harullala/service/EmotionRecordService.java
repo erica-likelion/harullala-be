@@ -13,6 +13,7 @@ import likelion.harullala.dto.EmotionUpdateResponse;
 import likelion.harullala.exception.EmotionRecordNotFoundException;
 import likelion.harullala.exception.ForbiddenAccessException;
 import likelion.harullala.repository.EmotionRecordRepository;
+import likelion.harullala.repository.FriendNotificationBlockRepository;
 import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class EmotionRecordService {
 
     private final EmotionRecordRepository emotionRecordRepository;
     private final FriendRelationshipRepository friendRelationshipRepository;
+    private final FriendNotificationBlockRepository friendNotificationBlockRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
@@ -76,9 +78,21 @@ public class EmotionRecordService {
         // 친구 목록 조회
         List<FriendRelationship> friendships = friendRelationshipRepository.findAcceptedFriendsByUserId(userId);
 
-        // 각 친구에게 알림 발송
+        // 각 친구에게 알림 발송 (차단되지 않은 친구만)
         for (FriendRelationship friendship : friendships) {
             Long friendId = friendship.getOtherUserId(userId);
+            
+            // 친구가 나를 차단했는지 확인
+            User friend = userRepository.findById(friendId).orElse(null);
+            if (friend == null) {
+                continue;
+            }
+            
+            // 차단 여부 확인
+            if (friendNotificationBlockRepository.existsByUserAndBlockedFriend(friend, user)) {
+                // 이 친구가 나를 차단했으므로 알림을 보내지 않음
+                continue;
+            }
             
             try {
                 notificationService.sendNotification(

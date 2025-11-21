@@ -9,6 +9,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import likelion.harullala.domain.FriendNotificationBlock;
 import likelion.harullala.domain.FriendRelationship;
 import likelion.harullala.domain.FriendStatus;
 import likelion.harullala.domain.NotificationType;
@@ -21,6 +22,7 @@ import likelion.harullala.dto.RespondToFriendRequestDto;
 import likelion.harullala.dto.SendFriendRequestDto;
 import likelion.harullala.dto.SentFriendRequestDto;
 import likelion.harullala.repository.EmotionRecordRepository;
+import likelion.harullala.repository.FriendNotificationBlockRepository;
 import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
 import likelion.harullala.service.FriendService;
@@ -33,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 public class FriendServiceImpl implements FriendService {
 
     private final FriendRelationshipRepository friendRelationshipRepository;
+    private final FriendNotificationBlockRepository friendNotificationBlockRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EmotionRecordRepository emotionRecordRepository;
@@ -277,5 +280,56 @@ public class FriendServiceImpl implements FriendService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void blockFriendNotification(Long userId, Long friendId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        User friend = userRepository.findById(friendId)
+                .orElseThrow(() -> new IllegalArgumentException("친구를 찾을 수 없습니다."));
+
+        // 자기 자신을 차단하는 경우 방지
+        if (user.getId().equals(friend.getId())) {
+            throw new IllegalArgumentException("자기 자신의 알림을 차단할 수 없습니다.");
+        }
+
+        // 친구 관계인지 확인
+        if (!friendRelationshipRepository.existsByUsersAndAccepted(user, friend)) {
+            throw new IllegalArgumentException("친구 관계가 아닙니다.");
+        }
+
+        // 이미 차단되어 있는지 확인
+        if (friendNotificationBlockRepository.existsByUserAndBlockedFriend(user, friend)) {
+            throw new IllegalArgumentException("이미 차단된 친구입니다.");
+        }
+
+        // 차단 정보 저장
+        FriendNotificationBlock block = FriendNotificationBlock.builder()
+                .user(user)
+                .blockedFriend(friend)
+                .build();
+
+        friendNotificationBlockRepository.save(block);
+    }
+
+    @Override
+    @Transactional
+    public void unblockFriendNotification(Long userId, Long friendId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        User friend = userRepository.findById(friendId)
+                .orElseThrow(() -> new IllegalArgumentException("친구를 찾을 수 없습니다."));
+
+        // 차단 정보 조회
+        FriendNotificationBlock block = friendNotificationBlockRepository
+                .findByUserAndBlockedFriend(user, friend)
+                .orElseThrow(() -> new IllegalArgumentException("차단되지 않은 친구입니다."));
+
+        // 차단 해제
+        friendNotificationBlockRepository.delete(block);
     }
 }

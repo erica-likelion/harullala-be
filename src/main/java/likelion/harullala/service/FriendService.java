@@ -46,4 +46,14 @@ public interface FriendService {
      * 보낸 친구 요청 목록 조회 (PENDING 상태)
      */
     List<SentFriendRequestDto> getSentFriendRequests(Long userId);
+    
+    /**
+     * 친구 푸시 알림 차단
+     */
+    void blockFriendNotification(Long userId, Long friendId);
+    
+    /**
+     * 친구 푸시 알림 차단 해제
+     */
+    void unblockFriendNotification(Long userId, Long friendId);
 }
