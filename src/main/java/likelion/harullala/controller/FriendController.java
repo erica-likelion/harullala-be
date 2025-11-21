@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import likelion.harullala.config.security.CustomUserDetails;
 import likelion.harullala.dto.ApiSuccess;
+import likelion.harullala.dto.BlockFriendNotificationDto;
 import likelion.harullala.dto.CancelFriendRequestDto;
 import likelion.harullala.dto.FriendInfoDto;
 import likelion.harullala.dto.ReceivedFriendRequestDto;
@@ -131,5 +132,35 @@ public class FriendController {
         List<SentFriendRequestDto> requests = friendService.getSentFriendRequests(userId);
         
         return ApiSuccess.of(requests, "보낸 친구 요청 목록 조회가 성공했습니다.");
+    }
+
+    /**
+     * 친구 푸시 알림 차단
+     * POST /api/v1/friends/notification/block
+     */
+    @PostMapping("/notification/block")
+    public ApiSuccess<?> blockFriendNotification(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody BlockFriendNotificationDto requestDto) {
+        
+        Long userId = userDetails.getUser().getId();
+        friendService.blockFriendNotification(userId, requestDto.getFriendId());
+        
+        return ApiSuccess.of(null, "친구 푸시 알림이 차단되었습니다.");
+    }
+
+    /**
+     * 친구 푸시 알림 차단 해제
+     * DELETE /api/v1/friends/notification/unblock
+     */
+    @DeleteMapping("/notification/unblock")
+    public ApiSuccess<?> unblockFriendNotification(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody BlockFriendNotificationDto requestDto) {
+        
+        Long userId = userDetails.getUser().getId();
+        friendService.unblockFriendNotification(userId, requestDto.getFriendId());
+        
+        return ApiSuccess.of(null, "친구 푸시 알림 차단이 해제되었습니다.");
     }
 }
