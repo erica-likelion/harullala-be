@@ -25,6 +25,8 @@ public class UserServiceImpl implements UserService {
     private final EmotionRecordRepository emotionRecordRepository;
     private final FeedReadStatusRepository feedReadStatusRepository;
     private final FriendRelationshipRepository friendRelationshipRepository;
+    private final NotificationRepository notificationRepository;
+    private final FriendNotificationBlockRepository friendNotificationBlockRepository;
 
 
     @Override
@@ -79,6 +81,8 @@ public class UserServiceImpl implements UserService {
         friendRelationshipRepository.deleteAllByUserId(userId);
         aiFeedbackRepository.deleteAllByUserId(userId);
         emotionRecordRepository.deleteAllByUserId(userId);
+        notificationRepository.deleteAllByUserId(userId);
+        friendNotificationBlockRepository.deleteAllByUserId(userId);
 
         // Delete the user
         userRepository.deleteById(userId);

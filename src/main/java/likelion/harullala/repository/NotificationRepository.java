@@ -6,6 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import likelion.harullala.domain.Notification;
 import likelion.harullala.domain.User;
 
@@ -26,5 +30,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * 사용자의 안읽은 알림 개수 조회
      */
     long countByUserAndIsReadFalse(User user);
+
+    @Modifying
+    @Query("delete from Notification n where n.user.id = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 }
 
