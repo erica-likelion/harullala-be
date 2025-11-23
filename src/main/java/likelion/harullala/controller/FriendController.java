@@ -144,7 +144,7 @@ public class FriendController {
             @RequestBody BlockFriendNotificationDto requestDto) {
         
         Long userId = userDetails.getUser().getId();
-        friendService.blockFriendNotification(userId, requestDto.getFriendId());
+        friendService.blockFriendNotification(userId, requestDto.getConnectCode());
         
         return ApiSuccess.of(null, "친구 푸시 알림이 차단되었습니다.");
     }
@@ -159,7 +159,7 @@ public class FriendController {
             @RequestBody BlockFriendNotificationDto requestDto) {
         
         Long userId = userDetails.getUser().getId();
-        friendService.unblockFriendNotification(userId, requestDto.getFriendId());
+        friendService.unblockFriendNotification(userId, requestDto.getConnectCode());
         
         return ApiSuccess.of(null, "친구 푸시 알림 차단이 해제되었습니다.");
     }

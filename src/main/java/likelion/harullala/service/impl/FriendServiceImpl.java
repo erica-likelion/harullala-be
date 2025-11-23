@@ -284,12 +284,12 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional
-    public void blockFriendNotification(Long userId, Long friendId) {
+    public void blockFriendNotification(Long userId, String connectCode) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        User friend = userRepository.findById(friendId)
-                .orElseThrow(() -> new IllegalArgumentException("친구를 찾을 수 없습니다."));
+        User friend = userRepository.findByConnectCode(connectCode)
+                .orElseThrow(() -> new IllegalArgumentException("해당 초대 코드를 가진 사용자를 찾을 수 없습니다."));
 
         // 자기 자신을 차단하는 경우 방지
         if (user.getId().equals(friend.getId())) {
@@ -317,12 +317,12 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional
-    public void unblockFriendNotification(Long userId, Long friendId) {
+    public void unblockFriendNotification(Long userId, String connectCode) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        User friend = userRepository.findById(friendId)
-                .orElseThrow(() -> new IllegalArgumentException("친구를 찾을 수 없습니다."));
+        User friend = userRepository.findByConnectCode(connectCode)
+                .orElseThrow(() -> new IllegalArgumentException("해당 초대 코드를 가진 사용자를 찾을 수 없습니다."));
 
         // 차단 정보 조회
         FriendNotificationBlock block = friendNotificationBlockRepository

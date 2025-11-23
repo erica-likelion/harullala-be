@@ -50,10 +50,10 @@ public interface FriendService {
     /**
      * 친구 푸시 알림 차단
      */
-    void blockFriendNotification(Long userId, Long friendId);
+    void blockFriendNotification(Long userId, String connectCode);
     
     /**
      * 친구 푸시 알림 차단 해제
      */
-    void unblockFriendNotification(Long userId, Long friendId);
+    void unblockFriendNotification(Long userId, String connectCode);
 }
