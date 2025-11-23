@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BlockFriendNotificationDto {
-    private Long friendId;  // 차단할 친구의 ID
+    private String connectCode;  // 차단할 친구의 connectCode
 }
 
