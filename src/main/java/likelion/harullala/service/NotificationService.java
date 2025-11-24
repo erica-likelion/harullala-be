@@ -40,6 +40,15 @@ public class NotificationService {
      */
     @Transactional
     public void sendNotification(Long userId, NotificationType type, String title, String message, Long relatedId) {
+        sendNotification(userId, type, title, message, relatedId, false);
+    }
+
+    /**
+     * 알림 전송 (DB 저장 + FCM 푸시)
+     * @param skipPush true이면 FCM 푸시를 보내지 않음 (DB에는 저장됨)
+     */
+    @Transactional
+    public void sendNotification(Long userId, NotificationType type, String title, String message, Long relatedId, boolean skipPush) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -54,11 +63,13 @@ public class NotificationService {
                 .build();
         
         notificationRepository.save(notification);
-        log.info("알림 저장 완료: userId={}, type={}, title={}", userId, type, title);
+        log.info("알림 저장 완료: userId={}, type={}, title={}, skipPush={}", userId, type, title, skipPush);
 
-        // 2. FCM 푸시 전송
-        if (user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
+        // 2. FCM 푸시 전송 (skipPush가 false일 때만)
+        if (!skipPush && user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
             sendFcmNotification(user.getFcmToken(), type, title, message, relatedId);
+        } else if (skipPush) {
+            log.info("푸시 알림이 차단되어 FCM 전송을 건너뜁니다. userId={}", userId);
         } else {
             log.warn("FCM 토큰이 없습니다. userId={}", userId);
         }

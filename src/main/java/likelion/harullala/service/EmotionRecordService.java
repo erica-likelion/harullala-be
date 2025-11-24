@@ -89,18 +89,17 @@ public class EmotionRecordService {
             }
             
             // 차단 여부 확인
-            if (friendNotificationBlockRepository.existsByUserAndBlockedFriend(friend, user)) {
-                // 이 친구가 나를 차단했으므로 알림을 보내지 않음
-                continue;
-            }
+            boolean isBlocked = friendNotificationBlockRepository.existsByUserAndBlockedFriend(friend, user);
             
             try {
+                // 차단된 친구의 경우 DB에는 저장하되 FCM 푸시만 차단
                 notificationService.sendNotification(
                     friendId,
                     NotificationType.FRIEND_EMOTION_RECORD,
                     "친구가 감정 기록을 작성했어요",
                     user.getNickname() + "님이 오늘의 감정을 기록했어요",
-                    recordId
+                    recordId,
+                    isBlocked  // 차단된 경우 skipPush=true로 설정하여 FCM만 차단
                 );
             } catch (Exception e) {
                 // 개별 알림 실패는 로그만 남기고 계속 진행
