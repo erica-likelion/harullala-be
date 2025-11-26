@@ -26,8 +26,8 @@ public class RecordReader {
             return null;
         }
         
-        // 2. 사용자 ID로 현재 선택한 캐릭터 조회 (인사말 조회와 동일한 방식)
-        UserCharacter userCharacter = userCharacterRepository.findByUserId(record.getUserId())
+        // 2. 사용자 ID로 현재 활성화된 캐릭터 조회 (active=true인 캐릭터만)
+        UserCharacter userCharacter = userCharacterRepository.findActiveByUserId(record.getUserId())
                 .orElse(null);
         
         if (userCharacter == null) {
