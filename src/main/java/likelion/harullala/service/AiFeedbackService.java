@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Transactional
 public class AiFeedbackService {
     private static final int LIMIT = 3;
-    private static final int DELAY_MINUTES = 10;
+    private static final int DELAY_MINUTES = 1;
 
     private final AiFeedbackRepository feedbackRepo;
     private final RecordReader recordReader;
@@ -51,7 +51,7 @@ public class AiFeedbackService {
             throw new ApiException(HttpStatus.CONFLICT, "Feedback limit exceeded (3/3)");
         }
 
-        // 10분 후에 AI 답변 생성 및 푸시 알림 전송
+        // 1분 후에 AI 답변 생성 및 푸시 알림 전송
         scheduler.schedule(() -> {
             try {
                 generateAndSendFeedback(rec.recordId(), rec.userId(), rec.text(), rec.character(), next);
@@ -62,13 +62,13 @@ public class AiFeedbackService {
 
         log.info("AI 피드백 생성 요청: recordId={}, userId={}, {}분 후 전송 예정", req.recordId(), requester, DELAY_MINUTES);
         
-        // 즉시 반환 (10분 후에 실제 피드백 생성)
-        // 기존 피드백이 있으면 반환, 없으면 빈 응답 반환 (클라이언트는 10분 후 조회)
+        // 즉시 반환 (1분 후에 실제 피드백 생성)
+        // 기존 피드백이 있으면 반환, 없으면 빈 응답 반환 (클라이언트는 1분 후 조회)
         if (f != null) {
             return toDto(f);
         }
         
-        // 피드백이 없으면 빈 응답 반환 (클라이언트는 10분 후 조회)
+        // 피드백이 없으면 빈 응답 반환 (클라이언트는 1분 후 조회)
         return new FeedbackDto(
                 null,
                 req.recordId(),
@@ -80,7 +80,7 @@ public class AiFeedbackService {
     }
 
     /**
-     * AI 피드백 생성 및 푸시 알림 전송 (10분 후 실행)
+     * AI 피드백 생성 및 푸시 알림 전송 (1분 후 실행)
      */
     @Transactional
     private void generateAndSendFeedback(Long recordId, Long userId, String text, likelion.harullala.domain.Character character, int attemptsUsed) {
