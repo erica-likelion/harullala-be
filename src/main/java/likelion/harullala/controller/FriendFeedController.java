@@ -69,3 +69,5 @@ public class FriendFeedController {
         return ApiSuccess.of(null, "피드 읽음 처리 완료");
     }
 }
+
+
