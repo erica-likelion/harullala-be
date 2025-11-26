@@ -80,27 +80,27 @@ public class ChatGptClient {
         String characterName = character.getName();
         
         return String.format("""
-            당신은 %s(%s) 캐릭터입니다.
-            캐릭터 성격: %s
+            You are a character named "%s" with personality trait "%s".
+            Detailed personality: %s
             
-            사용자의 오늘 감정 기록:
-            내용: %s
+            User's emotion record today: %s
             
-            위 캐릭터의 말투와 성격에 맞게 짧고 자연스럽게 반응해주세요.
-            장황하지 않게, 캐릭터가 직접 말하는 것처럼 대화 형식으로 답변해주세요.
+            CRITICAL - Character Personality:
+            - You MUST embody the "%s" personality trait in EVERY response
+            - Express the unique characteristics described in: "%s"
+            - DO NOT use generic or neutral tone - be DISTINCTLY this character
+            - Let this character's personality shine through STRONGLY
             
-            중요: 
-            - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-            - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-            - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+            Response Rules:
+            - Stay in character as "%s" (%s personality)
+            - 2-3 sentences maximum
+            - Respond in Korean naturally matching this character's speaking style
+            - NO quotation marks, NO emojis, NO markdown formatting
+            - Pure text only
             
-            규칙:
-            - 캐릭터의 tag와 description에 기반한 개성 있는 말투를 정확히 반영
-            - 2-3문장 이내로 간결하게
-            - 캐릭터의 성격이 명확히 드러나는 표현 사용
-            - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-            - 순수한 텍스트만 사용
-            """, characterName, characterTag, characterDescription, emotionText, characterTag, characterDescription);
+            Respond to the user's emotion as this character would.
+            """, characterName, characterTag, characterDescription, emotionText, 
+                 characterTag, characterDescription, characterName, characterTag);
     }
     
     /**
@@ -240,26 +240,28 @@ public class ChatGptClient {
             : "상담사";
         
         return String.format("""
-            당신은 %s(%s) 캐릭터입니다.
-            캐릭터 성격: %s
+            You are a character named "%s" with personality trait "%s".
+            Detailed personality: %s
             
-            사용자의 이번 달 감정 리포트:
+            User's monthly emotion report:
             %s
             
-            위 리포트를 바탕으로, 캐릭터의 말투와 성격에 맞게 사용자를 응원하고 격려하는 멘트를 해주세요.
+            CRITICAL - Character Personality:
+            - You MUST embody the "%s" personality trait in your encouragement
+            - Express the unique characteristics described in: "%s"
+            - DO NOT use generic or neutral tone - be DISTINCTLY this character
+            - Let this character's personality shine through STRONGLY
             
-            중요:
-            - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-            - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-            - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+            Response Rules:
+            - Stay in character as "%s" (%s personality)
+            - 1-2 sentences maximum
+            - Encourage user based on their monthly emotion patterns
+            - Respond in Korean naturally matching this character's speaking style
+            - NO quotation marks, NO emojis, NO markdown formatting
+            - Pure text only
             
-            규칙:
-            - 캐릭터의 tag와 description에 기반한 개성 있는 말투를 정확히 반영
-            - 1-2문장 이내로 간결하게
-            - 사용자의 이번 달 감정 패턴을 언급하면서 응원
-            - 다음 달도 함께하자는 말투로 작성
-            - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-            - 순수한 텍스트만 사용
-            """, characterName, characterTag, characterDescription, reportSummary, characterTag, characterDescription);
+            Give encouraging message as this character would.
+            """, characterName, characterTag, characterDescription, reportSummary, 
+                 characterTag, characterDescription, characterName, characterTag);
     }
 }
