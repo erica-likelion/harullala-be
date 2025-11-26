@@ -2,7 +2,6 @@ package likelion.harullala.service;
 
 
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -26,12 +28,14 @@ import java.util.Map;
 @Transactional
 public class AiFeedbackService {
     private static final int LIMIT = 3;
+    private static final int DELAY_MINUTES = 1;
 
     private final AiFeedbackRepository feedbackRepo;
     private final RecordReader recordReader;
     private final ChatGptClient chatGptClient;
     private final NotificationService notificationService;
     private final SseService sseService;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
 
     public FeedbackDto createOrRegenerate(Long requester, CreateFeedbackRequest req) {
 
@@ -51,10 +55,16 @@ public class AiFeedbackService {
         }
 
         // 즉시 "처리 중" 응답 반환
-        log.info("AI 피드백 생성 요청: recordId={}, userId={}, 백그라운드 처리 시작", req.recordId(), requester);
+        log.info("AI 피드백 생성 요청: recordId={}, userId={}, {}분 후 전송 예정", req.recordId(), requester, DELAY_MINUTES);
         
-        // 백그라운드에서 비동기로 AI 답변 생성
-        generateAndSendFeedbackAsync(rec.recordId(), rec.userId(), rec.text(), rec.character(), next);
+        // 1분 후에 백그라운드에서 비동기로 AI 답변 생성
+        scheduler.schedule(() -> {
+            try {
+                generateAndSendFeedbackAsync(rec.recordId(), rec.userId(), rec.text(), rec.character(), next);
+            } catch (Exception e) {
+                log.error("AI 피드백 생성 및 전송 실패: recordId={}, error={}", rec.recordId(), e.getMessage(), e);
+            }
+        }, DELAY_MINUTES, TimeUnit.MINUTES);
         
         // 기존 피드백이 있으면 반환, 없으면 "처리 중" 응답 반환
         if (f != null) {
@@ -73,9 +83,8 @@ public class AiFeedbackService {
     }
 
     /**
-     * AI 피드백 생성 및 알림 전송 (비동기 처리)
+     * AI 피드백 생성 및 알림 전송 (1분 후 비동기 처리)
      */
-    @Async("taskExecutor")
     @Transactional
     public void generateAndSendFeedbackAsync(Long recordId, Long userId, String text, likelion.harullala.domain.Character character, int attemptsUsed) {
         log.info("AI 피드백 생성 시작: recordId={}, userId={}", recordId, userId);
