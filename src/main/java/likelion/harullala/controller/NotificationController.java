@@ -76,5 +76,18 @@ public class NotificationController {
         
         return ResponseEntity.ok(ApiSuccess.of(null, "알림을 읽음 처리했습니다."));
     }
+
+    /**
+     * 모든 알림 읽음 처리
+     * PUT /api/v1/notifications/read-all
+     */
+    @PutMapping("/read-all")
+    public ResponseEntity<ApiSuccess<Void>> markAllAsRead(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        notificationService.markAllAsRead(userId);
+        
+        return ResponseEntity.ok(ApiSuccess.of(null, "모든 알림을 읽음 처리했습니다."));
+    }
 }
 

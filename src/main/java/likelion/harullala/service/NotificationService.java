@@ -67,7 +67,7 @@ public class NotificationService {
 
         // 2. FCM 푸시 전송 (skipPush가 false일 때만)
         if (!skipPush && user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
-            sendFcmNotification(user.getFcmToken(), type, title, message, relatedId);
+            sendFcmNotification(user.getFcmToken(), type, title, message, relatedId, notification.getId());
         } else if (skipPush) {
             log.info("푸시 알림이 차단되어 FCM 전송을 건너뜁니다. userId={}", userId);
         } else {
@@ -78,13 +78,14 @@ public class NotificationService {
     /**
      * FCM 푸시 알림 전송
      */
-    private void sendFcmNotification(String fcmToken, NotificationType type, String title, String message, Long relatedId) {
+    private void sendFcmNotification(String fcmToken, NotificationType type, String title, String message, Long relatedId, Long notificationId) {
         try {
             // 알림 데이터 구성
             Map<String, String> data = new HashMap<>();
             data.put("type", type.name());
             data.put("title", title);
             data.put("message", message);
+            data.put("notificationId", String.valueOf(notificationId));
             if (relatedId != null) {
                 data.put("relatedId", String.valueOf(relatedId));
             }
@@ -183,6 +184,24 @@ public class NotificationService {
 
         notification.markAsRead();
         notificationRepository.save(notification);
+    }
+
+    /**
+     * 모든 알림 읽음 처리
+     */
+    @Transactional
+    public void markAllAsRead(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<Notification> unreadNotifications = notificationRepository.findByUserAndIsReadFalse(user);
+        
+        for (Notification notification : unreadNotifications) {
+            notification.markAsRead();
+        }
+        
+        notificationRepository.saveAll(unreadNotifications);
+        log.info("모든 알림 읽음 처리 완료: userId={}, count={}", userId, unreadNotifications.size());
     }
 
     /**
