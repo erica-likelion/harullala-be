@@ -13,19 +13,26 @@ import likelion.harullala.exception.ApiException;
 import likelion.harullala.infra.ChatGptClient;
 import likelion.harullala.infra.RecordReader;
 import likelion.harullala.repository.AiFeedbackRepository;
-import likelion.harullala.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class AiFeedbackService {
     private static final int LIMIT = 3;
+    private static final int DELAY_MINUTES = 10;
 
     private final AiFeedbackRepository feedbackRepo;
     private final RecordReader recordReader;
     private final ChatGptClient chatGptClient;
     private final NotificationService notificationService;
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
 
     public FeedbackDto createOrRegenerate(Long requester, CreateFeedbackRequest req) {
 
@@ -44,37 +51,73 @@ public class AiFeedbackService {
             throw new ApiException(HttpStatus.CONFLICT, "Feedback limit exceeded (3/3)");
         }
 
-        String aiReply = chatGptClient.generateFeedback(rec.text(), rec.character());
+        // 10분 후에 AI 답변 생성 및 푸시 알림 전송
+        scheduler.schedule(() -> {
+            try {
+                generateAndSendFeedback(rec.recordId(), rec.userId(), rec.text(), rec.character(), next);
+            } catch (Exception e) {
+                log.error("AI 피드백 생성 및 전송 실패: recordId={}, error={}", rec.recordId(), e.getMessage(), e);
+            }
+        }, DELAY_MINUTES, TimeUnit.MINUTES);
 
+        log.info("AI 피드백 생성 요청: recordId={}, userId={}, {}분 후 전송 예정", req.recordId(), requester, DELAY_MINUTES);
+        
+        // 즉시 반환 (10분 후에 실제 피드백 생성)
+        // 기존 피드백이 있으면 반환, 없으면 빈 응답 반환 (클라이언트는 10분 후 조회)
+        if (f != null) {
+            return toDto(f);
+        }
+        
+        // 피드백이 없으면 빈 응답 반환 (클라이언트는 10분 후 조회)
+        return new FeedbackDto(
+                null,
+                req.recordId(),
+                null,
+                0,
+                null,
+                null
+        );
+    }
+
+    /**
+     * AI 피드백 생성 및 푸시 알림 전송 (10분 후 실행)
+     */
+    @Transactional
+    private void generateAndSendFeedback(Long recordId, Long userId, String text, likelion.harullala.domain.Character character, int attemptsUsed) {
+        log.info("AI 피드백 생성 시작: recordId={}, userId={}", recordId, userId);
+        
+        // AI 답변 생성
+        String aiReply = chatGptClient.generateFeedback(text, character);
+
+        // 피드백 저장
+        AiFeedback f = feedbackRepo.findByRecordId(recordId).orElse(null);
         if (f == null) {
             f = new AiFeedback();
-            f.setRecordId(req.recordId());
-            f.setUserId(rec.userId());
-            f.setAttemptsUsed(1);
+            f.setRecordId(recordId);
+            f.setUserId(userId);
+            f.setAttemptsUsed(attemptsUsed);
             f.setAiReply(aiReply);
-            // createdAt, updatedAt은 @PrePersist에서 자동 설정됨
         } else {
-            f.setAttemptsUsed(next);
+            f.setAttemptsUsed(attemptsUsed);
             f.setAiReply(aiReply);
-            // updatedAt은 @PreUpdate에서 자동 설정됨
         }
         AiFeedback saved = feedbackRepo.saveAndFlush(f);
+        
+        log.info("AI 피드백 생성 완료: recordId={}, userId={}", recordId, userId);
         
         // 푸시 알림 전송
         try {
             notificationService.sendNotification(
-                rec.userId(),
+                userId,
                 NotificationType.AI_FEEDBACK,
                 "AI 피드백이 도착했어요",
                 "오늘의 감정에 대한 AI 피드백을 확인해보세요",
                 saved.getRecordId()  // recordId를 relatedId로 전달 (AI 피드백 조회 API가 recordId를 사용)
             );
+            log.info("AI 피드백 푸시 알림 전송 완료: recordId={}, userId={}", recordId, userId);
         } catch (Exception e) {
-            // 알림 전송 실패해도 피드백 생성은 정상 처리
-            // 로그는 NotificationService에서 기록됨
+            log.error("AI 피드백 푸시 알림 전송 실패: recordId={}, userId={}, error={}", recordId, userId, e.getMessage(), e);
         }
-        
-        return toDto(saved);
     }
 
     @Transactional(readOnly = true)
