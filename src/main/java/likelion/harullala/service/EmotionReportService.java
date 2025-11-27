@@ -12,6 +12,8 @@ import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.repository.UserCharacterRepository;
 import likelion.harullala.util.EmotionCoordinateMapper;
 import likelion.harullala.util.EmotionCoordinateMapper.Coordinate;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +40,9 @@ public class EmotionReportService {
     private final EmotionRecordRepository emotionRecordRepository;
     private final UserCharacterRepository userCharacterRepository;
     private final ChatGptClient chatGptClient;
+    
+    // 캐릭터 멘트 캐시 (감정 기록이 추가/수정될 때만 무효화)
+    private final Map<String, CachedReportMessage> messageCache = new ConcurrentHashMap<>();
 
     /**
      * 저번 달과 이번 달 감정 상태 비교
@@ -342,7 +348,7 @@ public class EmotionReportService {
     }
 
     /**
-     * 캐릭터 멘트 생성
+     * 캐릭터 멘트 생성 (캐시 적용 - 감정 기록이 추가/수정될 때만 새로 생성)
      * @param userId 사용자 ID
      * @param targetMonth 대상 월 (예: "2024-01", null이면 현재 월)
      * @return 캐릭터 멘트 응답
@@ -360,15 +366,40 @@ public class EmotionReportService {
         
         Character character = userCharacter.getSelectedCharacter();
 
-        // 리포트 데이터 조회
-        EmotionReportTopEmotionsResponse topEmotions = getTopEmotions(userId, targetMonth);
-        EmotionReportTimePatternResponse timePattern = getTimePattern(userId, targetMonth);
+        // 해당 월의 감정 기록 조회
+        List<EmotionRecord> records = getMonthlyRecords(userId, month);
+        
+        // 감정 기록의 마지막 업데이트 시간 계산 (감정 기록이 없으면 null)
+        LocalDateTime lastRecordUpdate = records.stream()
+                .map(EmotionRecord::getUpdatedAt)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
 
-        // 리포트 요약 텍스트 생성
-        String reportSummary = buildReportSummary(topEmotions, timePattern, month);
+        // 캐시 키 생성 (userId + targetMonth + characterId + lastRecordUpdate)
+        String cacheKey = createCacheKey(userId, month.format(DateTimeFormatter.ofPattern("yyyy-MM")), 
+                character.getId(), lastRecordUpdate);
 
-        // AI로 캐릭터 멘트 생성
-        String message = chatGptClient.generateReportMessage(reportSummary, character);
+        // 캐시 확인
+        CachedReportMessage cached = messageCache.get(cacheKey);
+        String message;
+        
+        if (cached != null && !cached.isInvalidated(lastRecordUpdate)) {
+            // 캐시된 멘트 사용 (감정 기록에 변화가 없음)
+            message = cached.getMessage();
+        } else {
+            // 새로운 멘트 생성 (감정 기록이 추가/수정됨)
+            EmotionReportTopEmotionsResponse topEmotions = getTopEmotions(userId, targetMonth);
+            EmotionReportTimePatternResponse timePattern = getTimePattern(userId, targetMonth);
+
+            // 리포트 요약 텍스트 생성
+            String reportSummary = buildReportSummary(topEmotions, timePattern, month);
+
+            // AI로 캐릭터 멘트 생성
+            message = chatGptClient.generateReportMessage(reportSummary, character);
+
+            // 캐시 저장
+            messageCache.put(cacheKey, new CachedReportMessage(message, lastRecordUpdate));
+        }
 
         return EmotionReportCharacterMessageResponse.builder()
                 .character_name(character.getName())
@@ -410,6 +441,50 @@ public class EmotionReportService {
         summary.append("그 시간대의 주요 감정: ").append(timePattern.getDominant_emotion()).append("\n");
         
         return summary.toString();
+    }
+
+    /**
+     * 캐시 키 생성
+     * @param userId 사용자 ID
+     * @param targetMonth 대상 월 (yyyy-MM 형식)
+     * @param characterId 캐릭터 ID
+     * @param lastRecordUpdate 마지막 감정 기록 업데이트 시간
+     * @return 캐시 키
+     */
+    private String createCacheKey(Long userId, String targetMonth, Long characterId, 
+                                   LocalDateTime lastRecordUpdate) {
+        String updateStr = lastRecordUpdate != null 
+                ? lastRecordUpdate.toString() 
+                : "no-records";
+        return userId + "_" + targetMonth + "_" + characterId + "_" + updateStr;
+    }
+
+    /**
+     * 캐릭터 멘트 캐시 클래스
+     * - 감정 기록이 추가/수정될 때만 무효화됨
+     */
+    @Getter
+    @AllArgsConstructor
+    private static class CachedReportMessage {
+        private final String message;
+        private final LocalDateTime lastRecordUpdate; // 캐시 생성 시점의 마지막 감정 기록 업데이트 시간
+
+        /**
+         * 캐시가 무효화되었는지 확인
+         * @param currentLastUpdate 현재 마지막 감정 기록 업데이트 시간
+         * @return 무효화 여부 (true면 새로 생성 필요)
+         */
+        public boolean isInvalidated(LocalDateTime currentLastUpdate) {
+            // 감정 기록이 없는 경우
+            if (lastRecordUpdate == null && currentLastUpdate == null) {
+                return false; // 둘 다 없으면 유효
+            }
+            if (lastRecordUpdate == null || currentLastUpdate == null) {
+                return true; // 하나만 없으면 무효화
+            }
+            // 감정 기록이 추가/수정되었는지 확인
+            return currentLastUpdate.isAfter(lastRecordUpdate);
+        }
     }
 }
 
