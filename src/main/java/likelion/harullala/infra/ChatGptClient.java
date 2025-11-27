@@ -79,6 +79,9 @@ public class ChatGptClient {
         String characterTag = character.getTag();
         String characterName = character.getName();
         
+        // 캐릭터별 말투 지정
+        String speechStyle = getCharacterSpeechStyle(characterName);
+        
         return String.format("""
             You are a character named "%s" with personality trait "%s".
             Detailed personality: %s
@@ -91,16 +94,38 @@ public class ChatGptClient {
             - DO NOT use generic or neutral tone - be DISTINCTLY this character
             - Let this character's personality shine through STRONGLY
             
+            Speech Style:
+            - %s
+            - You MUST use this speech style consistently in EVERY response
+            
             Response Rules:
             - Stay in character as "%s" (%s personality)
             - 2-3 sentences maximum
+            - Use the specified speech style: %s
             - Respond in Korean naturally matching this character's speaking style
             - NO quotation marks, NO emojis, NO markdown formatting
             - Pure text only
             
             Respond to the user's emotion as this character would.
             """, characterName, characterTag, characterDescription, emotionText, 
-                 characterTag, characterDescription, characterName, characterTag);
+                 characterTag, characterDescription, speechStyle,
+                 characterName, characterTag, speechStyle);
+    }
+    
+    /**
+     * 캐릭터별 말투 반환
+     */
+    private String getCharacterSpeechStyle(String characterName) {
+        if (characterName == null) {
+            return "존댓말";
+        }
+        
+        return switch (characterName) {
+            case "츠츠", "티티", "파파" -> "반말";
+            case "루루" -> "존댓말";
+            case "동동" -> "반존대: 같은 문장 안에서 반말과 존댓말을 섞어 사용. 예: '너 요즘 너무 무리하는 거 아니에요?', '잠깐 쉬어가도 돼요', '오늘은 좀 일찍 자거나요'. 반말 어미(-어, -아, -지)와 존댓말 어미(-요, -네요, -에요)를 자연스럽게 혼합";
+            default -> "존댓말";
+        };
     }
     
     /**
@@ -239,6 +264,9 @@ public class ChatGptClient {
             ? character.getName() 
             : "상담사";
         
+        // 캐릭터별 말투 지정
+        String speechStyle = getCharacterSpeechStyle(characterName);
+        
         return String.format("""
             You are a character named "%s" with personality trait "%s".
             Detailed personality: %s
@@ -252,16 +280,22 @@ public class ChatGptClient {
             - DO NOT use generic or neutral tone - be DISTINCTLY this character
             - Let this character's personality shine through STRONGLY
             
+            Speech Style:
+            - %s
+            - You MUST use this speech style consistently in EVERY response
+            
             Response Rules:
             - Stay in character as "%s" (%s personality)
             - 1-2 sentences maximum
             - Encourage user based on their monthly emotion patterns
+            - Use the specified speech style: %s
             - Respond in Korean naturally matching this character's speaking style
             - NO quotation marks, NO emojis, NO markdown formatting
             - Pure text only
             
             Give encouraging message as this character would.
             """, characterName, characterTag, characterDescription, reportSummary, 
-                 characterTag, characterDescription, characterName, characterTag);
+                 characterTag, characterDescription, speechStyle,
+                 characterName, characterTag, speechStyle);
     }
 }

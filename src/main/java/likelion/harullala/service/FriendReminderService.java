@@ -130,76 +130,124 @@ public class FriendReminderService {
                 ? character.getDescription()
                 : "현재 상황을 알려주는 알리미";
         
+        // 캐릭터별 말투 지정
+        String speechStyle = getCharacterSpeechStyle(characterName);
+        
         String prompt;
         
         if (friendCount == 0) {
             // 친구가 없을 때
             prompt = String.format("""
-                당신은 '%s'(%s) 캐릭터입니다.
-                캐릭터 성격: %s
+                You are a character named "%s" with personality trait "%s".
+                Detailed personality: %s
                 
-                사용자에게 아직 친구가 없다는 것을 알려주고, Pico World 친구를 초대하면 더 재미있고 5명까지 초대가 가능하다는 것을 캐릭터의 말투로 한 줄메시지를 작성해주세요.
-                (예: "아직 친구가 없네! 친구를 초대해서 함께 기록하면 더 재밌을 거야~")
+                Current situation: The user has no friends yet.
                 
-                중요:
-                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                CRITICAL - Character Personality:
+                - You MUST embody the "%s" personality trait in EVERY response
+                - Express the unique characteristics described in: "%s"
+                - DO NOT use generic or neutral tone - be DISTINCTLY this character
+                - Let this character's personality shine through STRONGLY
                 
-                규칙:
-                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-                - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription, characterTag, characterDescription);
+                Speech Style:
+                - %s
+                - You MUST use this speech style consistently in EVERY response
+                
+                Response Rules:
+                - Stay in character as "%s" (%s personality)
+                - 1 line maximum, very short
+                - Inform the user they have no friends yet
+                - Encourage them to invite Pico World friends (up to 5 friends can be invited)
+                - Use the specified speech style: %s
+                - NO quotation marks, NO emojis, NO markdown formatting
+                - Pure text only
+                
+                Tell the user in Korean that they can invite friends to make recording more fun.
+                """, characterName, characterTag, characterDescription, 
+                     characterTag, characterDescription, speechStyle,
+                     characterName, characterTag, speechStyle);
         } else if (hasUnrecorded) {
             // 친구가 아직 기록 안 했을 때
             int unrecordedCount = friendCount - recordedCount;
             prompt = String.format("""
-                당신은 '%s'(%s) 캐릭터입니다.
-                캐릭터 성격: %s
+                You are a character named "%s" with personality trait "%s".
+                Detailed personality: %s
                 
-                현재 상황: 친구 %d명 중 %d명이 아직 오늘 감정 기록을 작성하지 않았습니다.
+                Current situation: Out of %d friends, %d friends have not yet written their emotion record today.
                 
-                위 상황을 사용자에게 자연스럽게 알려주고, 친구들이 기록을 꼬박 쓰도록 격려하는 캐릭터의 말투,성격으로 한 줄 메시지를 작성해주세요.
+                CRITICAL - Character Personality:
+                - You MUST embody the "%s" personality trait in EVERY response
+                - Express the unique characteristics described in: "%s"
+                - DO NOT use generic or neutral tone - be DISTINCTLY this character
+                - Let this character's personality shine through STRONGLY
                 
-                올바른 예시:
-                - "친구들 중 아직 기록 안 한 사람이 있네! 꼬박 쓰라고 해줘~"
-                - "몇 명이 아직 기록을 안 썼어! 우리 친구들 응원할까?"
-                - "친구들 기록 상태를 보니 아직 안 쓴 사람들이 있네네"
+                Speech Style:
+                - %s
+                - You MUST use this speech style consistently in EVERY response
                 
-                주의: "너가 친구들에게 쓰라고 해줘"가 아니라, "친구들이 아직 안 썼다는 상황을 알려주는 톤으로 작성해주세요.
+                Response Rules:
+                - Stay in character as "%s" (%s personality)
+                - 1 line maximum, very short
+                - Inform the user about friends who haven't recorded yet
+                - Encourage friends to write records regularly
+                - Tone: Inform about the situation, not asking user to tell friends
+                - Use the specified speech style: %s
+                - NO quotation marks, NO emojis, NO markdown formatting
+                - Pure text only
                 
-                중요:
-                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
-                
-                규칙:
-                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-                - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription, friendCount, unrecordedCount, characterTag, characterDescription);
+                Inform the user in Korean about friends who haven't recorded yet, using this character's speaking style.
+                """, characterName, characterTag, characterDescription, friendCount, unrecordedCount,
+                     characterTag, characterDescription, speechStyle,
+                     characterName, characterTag, speechStyle);
         } else {
             // 모두 기록했을 때
             prompt = String.format("""
-                당신은 '%s'(%s) 캐릭터입니다.
-                캐릭터 성격: %s
+                You are a character named "%s" with personality trait "%s".
+                Detailed personality: %s
                 
-                현재 상황: 친구 %d명이 모두 오늘 감정 기록을 작성했습니다!
+                Current situation: All %d friends have written their emotion record today!
                 
-                위 상황을 축하하는 캐릭터의 말투로 한 줄 메시지를 작성해주세요.
-                (예: "모두 기록 잘했네! 정말 대단해!")
+                CRITICAL - Character Personality:
+                - You MUST embody the "%s" personality trait in EVERY response
+                - Express the unique characteristics described in: "%s"
+                - DO NOT use generic or neutral tone - be DISTINCTLY this character
+                - Let this character's personality shine through STRONGLY
                 
-                중요:
-                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                Speech Style:
+                - %s
+                - You MUST use this speech style consistently in EVERY response
                 
-                규칙:
-                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-                - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription, friendCount, characterTag, characterDescription);
+                Response Rules:
+                - Stay in character as "%s" (%s personality)
+                - 1 line maximum, very short
+                - Celebrate that all friends have recorded
+                - Use the specified speech style: %s
+                - NO quotation marks, NO emojis, NO markdown formatting
+                - Pure text only
+                
+                Celebrate in Korean that all friends have recorded, using this character's speaking style.
+                """, characterName, characterTag, characterDescription, friendCount,
+                     characterTag, characterDescription, speechStyle,
+                     characterName, characterTag, speechStyle);
         }
         
         return chatGptClient.generateCustomFeedback(prompt);
+    }
+    
+    /**
+     * 캐릭터별 말투 반환
+     */
+    private String getCharacterSpeechStyle(String characterName) {
+        if (characterName == null) {
+            return "존댓말";
+        }
+        
+        return switch (characterName) {
+            case "츠츠", "티티", "파파" -> "반말";
+            case "루루" -> "존댓말";
+            case "동동" -> "반존대: 같은 문장 안에서 반말과 존댓말을 섞어 사용. 예: '너 요즘 너무 무리하는 거 아니에요?', '잠깐 쉬어가도 돼요', '오늘은 좀 일찍 자거나요'. 반말 어미(-어, -아, -지)와 존댓말 어미(-요, -네요, -에요)를 자연스럽게 혼합";
+            default -> "존댓말";
+        };
     }
 }
 

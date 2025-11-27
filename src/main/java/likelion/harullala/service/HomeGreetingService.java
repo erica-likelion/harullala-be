@@ -116,57 +116,91 @@ public class HomeGreetingService {
                 ? character.getDescription()
                 : "친근하고 다정한 친구";
         
+        // 캐릭터별 말투 지정
+        String speechStyle = getCharacterSpeechStyle(characterName);
+        
         String prompt;
         
         if (hasRecordedToday) {
             // 오늘 이미 기록했을 때
             prompt = String.format("""
-                당신은 '%s'(%s) 캐릭터입니다.
-                캐릭터 성격: %s
+                You are a character named "%s" with personality trait "%s".
+                Detailed personality: %s
                 
-                현재 상황: 사용자가 오늘 이미 감정 기록을 작성했습니다.
+                Current situation: The user has already written their emotion record today.
                 
-                사용자에게 오늘 이미 기록을 완료했다는 것을 캐릭터의 말투와 성격에 맞게 한 줄로 짧게 알려주세요.
+                CRITICAL - Character Personality:
+                - You MUST embody the "%s" personality trait in EVERY response
+                - Express the unique characteristics described in: "%s"
+                - DO NOT use generic or neutral tone - be DISTINCTLY this character
+                - Let this character's personality shine through STRONGLY
                 
-                중요:
-                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                Speech Style:
+                - %s
+                - You MUST use this speech style consistently in EVERY response
                 
-                규칙:
-                - 반드시 한 줄로 짧게 (10-15자)
-                - 위 캐릭터의 tag와 description에 기반한 성격과 말투를 정확히 반영
-                - "오늘 이미 기록했다"는 내용을 자연스럽게 전달
-                - 캐릭터의 개성이 명확히 드러나는 표현 사용
-                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-                - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription, characterTag, characterDescription);
+                Response Rules:
+                - Stay in character as "%s" (%s personality)
+                - 1 line maximum, very short (10-15 characters in Korean)
+                - Inform the user that they have already completed today's record
+                - Use the specified speech style: %s
+                - NO quotation marks, NO emojis, NO markdown formatting
+                - Pure text only
+                
+                Respond in Korean naturally matching this character's speaking style.
+                """, characterName, characterTag, characterDescription, 
+                     characterTag, characterDescription, speechStyle,
+                     characterName, characterTag, speechStyle);
         } else {
             // 아직 기록 안 했을 때
             prompt = String.format("""
-                당신은 '%s'(%s) 캐릭터입니다.
-                캐릭터 성격: %s
+                You are a character named "%s" with personality trait "%s".
+                Detailed personality: %s
                 
-                현재 상황: 사용자가 아직 오늘 감정 기록을 작성하지 않았습니다.
+                Current situation: The user has not yet written their emotion record today.
                 
-                사용자에게 오늘 기분을 물어보거나 감정 기록을 유도하는 캐릭터의 말투로 한 줄 짧게 인사해주세요.
+                CRITICAL - Character Personality:
+                - You MUST embody the "%s" personality trait in EVERY response
+                - Express the unique characteristics described in: "%s"
+                - DO NOT use generic or neutral tone - be DISTINCTLY this character
+                - Let this character's personality shine through STRONGLY
                 
-                중요:
-                - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-                - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-                - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+                Speech Style:
+                - %s
+                - You MUST use this speech style consistently in EVERY response
                 
-                규칙:
-                - 반드시 한 줄로 짧게 (10-15자)
-                - 위 캐릭터의 tag와 description에 기반한 성격과 말투를 정확히 반영
-                - 기분을 묻거나 기록을 가볍게 유도
-                - 강요하지 말고 캐릭터답게 자연스럽게
-                - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-                - 순수한 텍스트만 사용
-                """, characterName, characterTag, characterDescription, characterTag, characterDescription);
+                Response Rules:
+                - Stay in character as "%s" (%s personality)
+                - 1 line maximum, very short (10-15 characters in Korean)
+                - Ask about their mood or gently encourage them to write a record
+                - Don't be pushy, be natural and in character
+                - Use the specified speech style: %s
+                - NO quotation marks, NO emojis, NO markdown formatting
+                - Pure text only
+                
+                Greet the user in Korean naturally matching this character's speaking style.
+                """, characterName, characterTag, characterDescription, 
+                     characterTag, characterDescription, speechStyle,
+                     characterName, characterTag, speechStyle);
         }
         
         return chatGptClient.generateCustomFeedback(prompt);
+    }
+    
+    /**
+     * 캐릭터별 말투 반환
+     */
+    private String getCharacterSpeechStyle(String characterName) {
+        if (characterName == null) {
+            return "존댓말";
+        }
+        
+        return switch (characterName) {
+            case "츠츠", "티티", "파파" -> "반말";
+            case "루루" -> "존댓말";
+            case "동동" -> "반존대: 같은 문장 안에서 반말과 존댓말을 섞어 사용. 예: '너 요즘 너무 무리하는 거 아니에요?', '잠깐 쉬어가도 돼요', '오늘은 좀 일찍 자거나요'. 반말 어미(-어, -아, -지)와 존댓말 어미(-요, -네요, -에요)를 자연스럽게 혼합";
+            default -> "존댓말";
+        };
     }
     
     /**

@@ -33,7 +33,7 @@ public class FriendFeedService {
     private final UserRepository userRepository;
 
     /**
-     * 친구들의 공유된 피드 조회 (24시간 이내)
+     * 친구들의 공유된 피드 조회 (24시간 이내) - 내가 쓴 감정기록도 포함
      */
     public List<FriendFeedResponse> getFriendFeeds(Long userId, int page, int size) {
         // 페이지는 0부터 시작하므로 -1
@@ -41,6 +41,9 @@ public class FriendFeedService {
         
         // 사용자의 친구 목록 조회 (ACCEPTED 상태만)
         List<Long> friendIds = getFriendIds(userId);
+        
+        // 친구 목록에 내 ID도 추가 (내가 쓴 감정기록도 포함)
+        friendIds.add(userId);
         
         if (friendIds.isEmpty()) {
             return List.of(); // 친구가 없으면 빈 리스트 반환
@@ -93,8 +96,9 @@ public class FriendFeedService {
             throw new ForbiddenAccessException("공유되지 않은 기록입니다.");
         }
 
-        // 친구 관계 확인
-        if (!isFriend(userId, record.getUserId())) {
+        // 내 기록이거나 친구 관계 확인
+        boolean isMyRecord = userId.equals(record.getUserId());
+        if (!isMyRecord && !isFriend(userId, record.getUserId())) {
             throw new ForbiddenAccessException("친구의 기록만 조회할 수 있습니다.");
         }
 
@@ -127,8 +131,9 @@ public class FriendFeedService {
             throw new ForbiddenAccessException("공유되지 않은 기록입니다.");
         }
 
-        // 친구 관계 확인
-        if (!isFriend(userId, record.getUserId())) {
+        // 내 기록이거나 친구 관계 확인
+        boolean isMyRecord = userId.equals(record.getUserId());
+        if (!isMyRecord && !isFriend(userId, record.getUserId())) {
             throw new ForbiddenAccessException("친구의 기록만 읽을 수 있습니다.");
         }
 

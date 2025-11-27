@@ -35,6 +35,9 @@ public class AiFeedback {
     @Column(nullable = false)
     private Integer attemptsUsed = 1;
 
+    @Column(name = "character_id")
+    private Long characterId; // 피드백 생성 시 사용된 캐릭터 ID (과거 기록 유지용)
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
