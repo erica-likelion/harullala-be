@@ -116,6 +116,9 @@ public class HomeGreetingService {
                 ? character.getDescription()
                 : "친근하고 다정한 친구";
         
+        // 캐릭터별 말투 지정
+        String speechStyle = getCharacterSpeechStyle(characterName);
+        
         String prompt;
         
         if (hasRecordedToday) {
@@ -132,17 +135,22 @@ public class HomeGreetingService {
                 - DO NOT use generic or neutral tone - be DISTINCTLY this character
                 - Let this character's personality shine through STRONGLY
                 
+                Speech Style:
+                - %s
+                - You MUST use this speech style consistently in EVERY response
+                
                 Response Rules:
                 - Stay in character as "%s" (%s personality)
                 - 1 line maximum, very short (10-15 characters in Korean)
                 - Inform the user that they have already completed today's record
-                - Use natural Korean matching this character's speaking style
+                - Use the specified speech style: %s
                 - NO quotation marks, NO emojis, NO markdown formatting
                 - Pure text only
                 
                 Respond in Korean naturally matching this character's speaking style.
                 """, characterName, characterTag, characterDescription, 
-                     characterTag, characterDescription, characterName, characterTag);
+                     characterTag, characterDescription, speechStyle,
+                     characterName, characterTag, speechStyle);
         } else {
             // 아직 기록 안 했을 때
             prompt = String.format("""
@@ -157,21 +165,42 @@ public class HomeGreetingService {
                 - DO NOT use generic or neutral tone - be DISTINCTLY this character
                 - Let this character's personality shine through STRONGLY
                 
+                Speech Style:
+                - %s
+                - You MUST use this speech style consistently in EVERY response
+                
                 Response Rules:
                 - Stay in character as "%s" (%s personality)
                 - 1 line maximum, very short (10-15 characters in Korean)
                 - Ask about their mood or gently encourage them to write a record
                 - Don't be pushy, be natural and in character
-                - Use natural Korean matching this character's speaking style
+                - Use the specified speech style: %s
                 - NO quotation marks, NO emojis, NO markdown formatting
                 - Pure text only
                 
                 Greet the user in Korean naturally matching this character's speaking style.
                 """, characterName, characterTag, characterDescription, 
-                     characterTag, characterDescription, characterName, characterTag);
+                     characterTag, characterDescription, speechStyle,
+                     characterName, characterTag, speechStyle);
         }
         
         return chatGptClient.generateCustomFeedback(prompt);
+    }
+    
+    /**
+     * 캐릭터별 말투 반환
+     */
+    private String getCharacterSpeechStyle(String characterName) {
+        if (characterName == null) {
+            return "존댓말";
+        }
+        
+        return switch (characterName) {
+            case "츠츠", "티티", "파파" -> "반말";
+            case "루루" -> "존댓말";
+            case "동동" -> "반존대: 같은 문장 안에서 반말과 존댓말을 섞어 사용. 예: '너 요즘 너무 무리하는 거 아니에요?', '잠깐 쉬어가도 돼요', '오늘은 좀 일찍 자거나요'. 반말 어미(-어, -아, -지)와 존댓말 어미(-요, -네요, -에요)를 자연스럽게 혼합";
+            default -> "존댓말";
+        };
     }
     
     /**
