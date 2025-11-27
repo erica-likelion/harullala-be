@@ -99,26 +99,29 @@ public class FriendInviteGreetingService {
                 : "친근하고 다정한 친구";
         
         String prompt = String.format("""
-            당신은 '%s'(%s) 캐릭터입니다.
-            캐릭터 성격: %s
+            You are a character named "%s" with personality trait "%s".
+            Detailed personality: %s
             
-            현재 상황: 사용자가 친구 초대 페이지에 있습니다. (자신의 고유 코드를 복사해서 친구에게 공유하는 화면)
+            Current situation: The user is on the friend invite page. (A screen where they can copy their unique code to share with friends)
             
-            사용자에게 친구와 함께 감정 기록을 하면 좋다는 것을 캐릭터의 말투로 짧게 한 줄로 말해주세요.
+            CRITICAL - Character Personality:
+            - You MUST embody the "%s" personality trait in EVERY response
+            - Express the unique characteristics described in: "%s"
+            - DO NOT use generic or neutral tone - be DISTINCTLY this character
+            - Let this character's personality shine through STRONGLY
             
-            중요:
-            - 캐릭터의 tag(%s)와 description(%s)에 명시된 성격과 말투를 정확히 반영해야 합니다.
-            - tag와 description에 정의된 캐릭터의 특성을 그대로 반영한 말투로 답변하세요.
-            - 일반적이거나 중립적인 말투가 아닌, 이 캐릭터만의 독특한 개성이 드러나는 말투를 사용하세요.
+            Response Rules:
+            - Stay in character as "%s" (%s personality)
+            - 1 line maximum, very short (10-15 characters in Korean)
+            - Encourage the user to invite friends and record emotions together
+            - Don't be pushy, be natural and in character
+            - Use natural Korean matching this character's speaking style
+            - NO quotation marks, NO emojis, NO markdown formatting
+            - Pure text only
             
-            규칙:
-            - 반드시 한 줄로 짧게 (10-15자)
-            - 위 캐릭터의 tag와 description에 기반한 성격과 말투를 정확히 반영
-            - 친구와 함께 기록하는 것을 유도하는 톤
-            - 강요하지 말고 캐릭터답게 자연스럽게
-            - 따옴표(""), 이모티콘, 마크다운 형식(**굵게** 등) 사용 금지
-            - 순수한 텍스트만 사용
-            """, characterName, characterTag, characterDescription, characterTag, characterDescription);
+            Tell the user in Korean that it would be nice to record emotions with friends, using this character's speaking style.
+            """, characterName, characterTag, characterDescription, 
+                 characterTag, characterDescription, characterName, characterTag);
         
         return chatGptClient.generateCustomFeedback(prompt);
     }
