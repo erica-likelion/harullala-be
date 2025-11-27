@@ -16,8 +16,6 @@ import likelion.harullala.repository.AiFeedbackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +32,6 @@ public class AiFeedbackService {
     private final RecordReader recordReader;
     private final ChatGptClient chatGptClient;
     private final NotificationService notificationService;
-    private final SseService sseService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
 
     public FeedbackDto createOrRegenerate(Long requester, CreateFeedbackRequest req) {
@@ -90,13 +87,6 @@ public class AiFeedbackService {
         log.info("AI 피드백 생성 시작: recordId={}, userId={}", recordId, userId);
         
         try {
-            // SSE로 "처리 중" 상태 전송
-            Map<String, Object> processingEvent = new HashMap<>();
-            processingEvent.put("status", "processing");
-            processingEvent.put("recordId", recordId);
-            processingEvent.put("message", "AI 피드백을 생성하고 있습니다...");
-            sseService.sendEvent(userId, "ai_feedback_processing", processingEvent);
-            
             // AI 답변 생성
             String aiReply = chatGptClient.generateFeedback(text, character);
 
@@ -116,15 +106,6 @@ public class AiFeedbackService {
             
             log.info("AI 피드백 생성 완료: recordId={}, userId={}", recordId, userId);
             
-            // SSE로 완료 이벤트 전송
-            Map<String, Object> completedEvent = new HashMap<>();
-            completedEvent.put("status", "completed");
-            completedEvent.put("recordId", recordId);
-            completedEvent.put("feedbackId", saved.getFeedbackId());
-            completedEvent.put("aiReply", saved.getAiReply());
-            completedEvent.put("message", "AI 피드백이 생성되었습니다.");
-            sseService.sendEvent(userId, "ai_feedback_completed", completedEvent);
-            
             // 푸시 알림 전송
             try {
                 notificationService.sendNotification(
@@ -141,13 +122,6 @@ public class AiFeedbackService {
             
         } catch (Exception e) {
             log.error("AI 피드백 생성 실패: recordId={}, userId={}, error={}", recordId, userId, e.getMessage(), e);
-            
-            // SSE로 에러 이벤트 전송
-            Map<String, Object> errorEvent = new HashMap<>();
-            errorEvent.put("status", "error");
-            errorEvent.put("recordId", recordId);
-            errorEvent.put("message", "AI 피드백 생성 중 오류가 발생했습니다.");
-            sseService.sendEvent(userId, "ai_feedback_error", errorEvent);
         }
     }
 
