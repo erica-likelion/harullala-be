@@ -27,7 +27,7 @@ public class FriendFeedController {
     private final FriendFeedService friendFeedService;
 
     /**
-     * 친구들의 공유된 피드 조회 (24시간 이내)
+     * 친구들의 공유된 피드 조회 (오늘 00시 이후)
      */
     @GetMapping
     public ApiSuccess<List<FriendFeedResponse>> getFriendFeeds(

@@ -33,7 +33,7 @@ public class FriendFeedService {
     private final UserRepository userRepository;
 
     /**
-     * 친구들의 공유된 피드 조회 (24시간 이내) - 내가 쓴 감정기록도 포함
+     * 친구들의 공유된 피드 조회 (오늘 00시 이후) - 내가 쓴 감정기록도 포함
      */
     public List<FriendFeedResponse> getFriendFeeds(Long userId, int page, int size) {
         // 페이지는 0부터 시작하므로 -1
@@ -49,15 +49,15 @@ public class FriendFeedService {
             return List.of(); // 친구가 없으면 빈 리스트 반환
         }
 
-        // 24시간 이내의 공유된 감정 기록 조회
-        LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
+        // 오늘 00시 이후의 공유된 감정 기록 조회
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
         
         // 모든 공유된 기록을 조회한 후 Java에서 필터링
         List<EmotionRecord> allSharedRecords = emotionRecordRepository.findAll()
                 .stream()
                 .filter(record -> record.getIsShared() && 
                                  friendIds.contains(record.getUserId()) && 
-                                 record.getCreatedAt().isAfter(twentyFourHoursAgo))
+                                 !record.getCreatedAt().isBefore(startOfDay))
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .collect(Collectors.toList());
         
