@@ -12,6 +12,7 @@ import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.repository.FeedReadStatusRepository;
 import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
+import likelion.harullala.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,7 @@ public class FriendFeedService {
     private final FeedReadStatusRepository feedReadStatusRepository;
     private final FriendRelationshipRepository friendRelationshipRepository;
     private final UserRepository userRepository;
+    private final EncryptionUtil encryptionUtil;
 
     /**
      * 친구들의 공유된 피드 조회 (오늘 00시 이후) - 내가 쓴 감정기록도 포함
@@ -74,11 +76,12 @@ public class FriendFeedService {
                 .map(record -> {
                     User author = userRepository.findById(record.getUserId())
                             .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
-                    
+
                     boolean isRead = readRecordIds.contains(record.getRecordId());
                     long readCount = feedReadStatusRepository.countByEmotionRecord(record);
-                    
-                    return FriendFeedResponse.from(record, author.getNickname(), author.getProfileImageUrl(), isRead, readCount);
+                    String decryptedRecord = encryptionUtil.decrypt(record.getRecord());
+
+                    return FriendFeedResponse.from(record, decryptedRecord, author.getNickname(), author.getProfileImageUrl(), isRead, readCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -113,8 +116,9 @@ public class FriendFeedService {
         // 읽음 상태 확인
         boolean isRead = feedReadStatusRepository.existsByReaderAndEmotionRecord(currentUser, record);
         long readCount = feedReadStatusRepository.countByEmotionRecord(record);
+        String decryptedRecord = encryptionUtil.decrypt(record.getRecord());
 
-        return FriendFeedResponse.from(record, author.getNickname(), author.getProfileImageUrl(), isRead, readCount);
+        return FriendFeedResponse.from(record, decryptedRecord, author.getNickname(), author.getProfileImageUrl(), isRead, readCount);
     }
 
     /**

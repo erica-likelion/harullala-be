@@ -26,10 +26,10 @@ public class FriendFeedResponse {
     private boolean isRead; // 현재 사용자가 읽었는지 여부
     private long readCount; // 총 읽은 사람 수
 
-    public static FriendFeedResponse from(EmotionRecord emotionRecord, String authorNickname, String authorProfileImageUrl, boolean isRead, long readCount) {
+    public static FriendFeedResponse from(EmotionRecord emotionRecord, String decryptedRecord, String authorNickname, String authorProfileImageUrl, boolean isRead, long readCount) {
         return FriendFeedResponse.builder()
                 .recordId(emotionRecord.getRecordId())
-                .record(emotionRecord.getRecord())
+                .record(decryptedRecord)
                 .emotionName(emotionRecord.getEmotionName())
                 .mainColor(emotionRecord.getMainColor())
                 .subColor(emotionRecord.getSubColor())
