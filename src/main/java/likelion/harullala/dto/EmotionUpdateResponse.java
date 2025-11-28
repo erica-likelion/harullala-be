@@ -38,6 +38,22 @@ public class EmotionUpdateResponse {
                 .updated_at(emotionRecord.getUpdatedAt())
                 .build();
     }
+
+    public static EmotionUpdateResponse from(EmotionRecord emotionRecord, String decryptedRecord) {
+        return EmotionUpdateResponse.builder()
+                .record_id(emotionRecord.getRecordId())
+                .user_id(emotionRecord.getUserId())
+                .record(decryptedRecord)
+                .emotion_name(emotionRecord.getEmotionName())
+                .main_color(emotionRecord.getMainColor())
+                .sub_color(emotionRecord.getSubColor())
+                .text_color(emotionRecord.getTextColor())
+                .is_shared(emotionRecord.getIsShared())
+                .ai_feedback_count(emotionRecord.getAiFeedbackCount())
+                .created_at(emotionRecord.getCreatedAt())
+                .updated_at(emotionRecord.getUpdatedAt())
+                .build();
+    }
 }
 
 

@@ -7,6 +7,7 @@ import likelion.harullala.domain.EmotionRecord;
 import likelion.harullala.domain.UserCharacter;
 import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.repository.UserCharacterRepository;
+import likelion.harullala.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 public class RecordReader {
     private final EmotionRecordRepository emotionRecordRepository;
     private final UserCharacterRepository userCharacterRepository;
+    private final EncryptionUtil encryptionUtil;
 
     public record RecRow(Long recordId, Long userId, String text, Character character) {}
 
@@ -36,10 +38,12 @@ public class RecordReader {
         
         Character character = userCharacter.getSelectedCharacter();
         
+        String decryptedRecord = encryptionUtil.decrypt(record.getRecord());
+
         return new RecRow(
                 record.getRecordId(),
                 record.getUserId(),
-                record.getRecord(),
+                decryptedRecord,
                 character
         );
     }
