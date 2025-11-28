@@ -16,6 +16,7 @@ import likelion.harullala.repository.EmotionRecordRepository;
 import likelion.harullala.repository.FriendNotificationBlockRepository;
 import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
+import likelion.harullala.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,13 +37,15 @@ public class EmotionRecordService {
     private final FriendNotificationBlockRepository friendNotificationBlockRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final EncryptionUtil encryptionUtil;
 
     @Transactional
     public EmotionResponse createEmotionRecord(Long userId, EmotionCreateRequest request) {
         // 감정 기록 엔티티 생성 (색상, 감정명 포함)
+        String encryptedRecord = encryptionUtil.encrypt(request.getRecord());
         EmotionRecord emotionRecord = EmotionRecord.builder()
                 .userId(userId)
-                .record(request.getRecord())
+                .record(encryptedRecord)
                 .emotionName(request.getEmotion_name())
                 .mainColor(request.getMain_color())
                 .subColor(request.getSub_color())
@@ -61,8 +64,10 @@ public class EmotionRecordService {
             // 알림 전송 실패해도 감정 기록 생성은 정상 처리
         }
 
+        // Decrypt for response
+        String decryptedRecord = encryptionUtil.decrypt(savedRecord.getRecord());
         // Response로 변환하여 반환
-        return EmotionResponse.from(savedRecord);
+        return EmotionResponse.from(savedRecord, decryptedRecord);
     }
 
     /**
@@ -120,7 +125,10 @@ public class EmotionRecordService {
         
         // DTO로 변환
         return emotionRecords.getContent().stream()
-                .map(EmotionListResponse::from)
+                .map(record -> {
+                    String decryptedRecord = encryptionUtil.decrypt(record.getRecord());
+                    return EmotionListResponse.from(record, decryptedRecord);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -137,8 +145,9 @@ public class EmotionRecordService {
             throw new ForbiddenAccessException("You do not have permission");
         }
 
+        String decryptedRecord = encryptionUtil.decrypt(emotionRecord.getRecord());
         // Response로 변환하여 반환
-        return EmotionResponse.from(emotionRecord);
+        return EmotionResponse.from(emotionRecord, decryptedRecord);
     }
 
     /**
@@ -157,7 +166,7 @@ public class EmotionRecordService {
 
         // 감정기록 전체 업데이트 (더티 체킹으로 자동 업데이트)
         emotionRecord.update(
-                request.getRecord(),
+                encryptionUtil.encrypt(request.getRecord()),
                 request.getEmotion_name(),
                 request.getMain_color(),
                 request.getSub_color(),
@@ -169,9 +178,9 @@ public class EmotionRecordService {
         if (request.getIs_shared() != null) {
             emotionRecord.updateSharedStatus(request.getIs_shared());
         }
-
+        String decryptedRecord = encryptionUtil.decrypt(emotionRecord.getRecord());
         // Response로 변환하여 반환
-        return EmotionUpdateResponse.from(emotionRecord);
+        return EmotionUpdateResponse.from(emotionRecord, decryptedRecord);
     }
 
     /**
@@ -212,8 +221,9 @@ public class EmotionRecordService {
         // 공유 상태 변경 (더티 체킹으로 자동 업데이트)
         emotionRecord.updateSharedStatus(isShared);
 
+        String decryptedRecord = encryptionUtil.decrypt(emotionRecord.getRecord());
         // Response로 변환하여 반환
-        return EmotionResponse.from(emotionRecord);
+        return EmotionResponse.from(emotionRecord, decryptedRecord);
     }
 
     /**
@@ -229,7 +239,10 @@ public class EmotionRecordService {
         
         // DTO로 변환
         return emotionRecords.getContent().stream()
-                .map(EmotionListResponse::from)
+                .map(record -> {
+                    String decryptedRecord = encryptionUtil.decrypt(record.getRecord());
+                    return EmotionListResponse.from(record, decryptedRecord);
+                })
                 .collect(Collectors.toList());
     }
 }

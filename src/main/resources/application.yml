@@ -45,3 +45,7 @@ openai:
 # Firebase 설정
 firebase:
   credentials-path: ${FIREBASE_CREDENTIALS_PATH:classpath:firebase-service-account.json}
+
+# Encryption 설정 (AES-256, 32?? ?? ???)
+encryption:
+  secret: ${ENCRYPTION_SECRET}
