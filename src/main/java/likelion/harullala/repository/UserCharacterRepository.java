@@ -13,15 +13,10 @@ public interface UserCharacterRepository extends JpaRepository<UserCharacter, Lo
     @Query("SELECT CASE WHEN COUNT(uc) > 0 THEN true ELSE false END FROM UserCharacter uc WHERE uc.user.id = :userId")
     boolean existsByUserId(@Param("userId") Long userId);
     
-    @Query("SELECT uc FROM UserCharacter uc WHERE uc.user.id = :userId")
-    Optional<UserCharacter> findByUserId(@Param("userId") Long userId);
-
-    /**
-     */
     @Query("SELECT uc FROM UserCharacter uc " +
            "JOIN FETCH uc.selectedCharacter " +
-           "WHERE uc.user.id = :userId AND uc.active = true")
-    Optional<UserCharacter> findActiveByUserId(@Param("userId") Long userId);
+           "WHERE uc.user.id = :userId")
+    Optional<UserCharacter> findByUserId(@Param("userId") Long userId);
 
     @Modifying
     @Query("DELETE FROM UserCharacter uc WHERE uc.user.id = :userId")

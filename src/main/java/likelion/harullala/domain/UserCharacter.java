@@ -29,9 +29,6 @@ public class UserCharacter {
             foreignKey = @ForeignKey(name="fk_uc_character"))
     private Character selectedCharacter;
 
-    @Column(name = "is_active", nullable = false)
-    private boolean active;              // 현재 사용중
-
     @CreationTimestamp
     @Column(name = "selected_at", nullable = false, updatable = false)
     private LocalDateTime selectedAt;

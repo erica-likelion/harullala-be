@@ -28,8 +28,8 @@ public class RecordReader {
             return null;
         }
         
-        // 2. 사용자 ID로 현재 활성화된 캐릭터 조회 (active=true인 캐릭터만)
-        UserCharacter userCharacter = userCharacterRepository.findActiveByUserId(record.getUserId())
+        // 2. 사용자 ID로 캐릭터 조회
+        UserCharacter userCharacter = userCharacterRepository.findByUserId(record.getUserId())
                 .orElse(null);
         
         if (userCharacter == null) {
