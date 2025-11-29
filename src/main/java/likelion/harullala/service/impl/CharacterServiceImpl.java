@@ -42,7 +42,6 @@ public class CharacterServiceImpl implements CharacterService {
         UserCharacter userCharacter = UserCharacter.builder()
                 .user(user)
                 .selectedCharacter(character)
-                .active(true)  // 선택한 캐릭터는 활성화 상태로 설정
                 .build();
 
         userCharacterRepository.save(userCharacter);

@@ -360,9 +360,9 @@ public class EmotionReportService {
                 ? YearMonth.parse(targetMonth, DateTimeFormatter.ofPattern("yyyy-MM"))
                 : YearMonth.now();
 
-        // 사용자의 활성 캐릭터 조회
-        UserCharacter userCharacter = userCharacterRepository.findActiveByUserId(userId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "활성 캐릭터를 찾을 수 없습니다."));
+        // 사용자의 캐릭터 조회
+        UserCharacter userCharacter = userCharacterRepository.findByUserId(userId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "캐릭터를 찾을 수 없습니다."));
         
         Character character = userCharacter.getSelectedCharacter();
 
