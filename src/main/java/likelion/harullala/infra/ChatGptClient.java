@@ -100,7 +100,7 @@ public class ChatGptClient {
             
             Response Rules:
             - Stay in character as "%s" (%s personality)
-            - 2-3 sentences maximum
+            - Write 3-4 sentences (not shorter, not longer)
             - Use the specified speech style: %s
             - Respond in Korean naturally matching this character's speaking style
             - NO quotation marks, NO emojis, NO markdown formatting

@@ -1,6 +1,10 @@
 package likelion.harullala.service;
 
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +21,6 @@ import likelion.harullala.repository.AiFeedbackRepository;
 import likelion.harullala.repository.CharacterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -54,16 +54,8 @@ public class AiFeedbackService {
             throw new ApiException(HttpStatus.CONFLICT, "Feedback limit exceeded (3/3)");
         }
 
-        // 재생성 시 원래 캐릭터 사용 (첫 생성 시 저장된 캐릭터), 없으면 현재 활성 캐릭터 사용
-        Character characterToUse;
-        if (f != null && f.getCharacterId() != null) {
-            // 기존 피드백이 있고 캐릭터 정보가 있으면 원래 캐릭터 사용
-            characterToUse = characterRepository.findById(f.getCharacterId())
-                    .orElse(rec.character()); // 캐릭터를 찾을 수 없으면 현재 활성 캐릭터 사용
-        } else {
-            // 첫 생성이면 현재 활성 캐릭터 사용
-            characterToUse = rec.character();
-        }
+        // 항상 현재 활성 캐릭터 사용 (캐릭터 변경 후 기록 수정 시 변경된 캐릭터로 피드백 생성)
+        Character characterToUse = rec.character();
 
         // 즉시 "처리 중" 응답 반환
         log.info("AI 피드백 생성 요청: recordId={}, userId={}, characterId={}, {}분 후 전송 예정", 
@@ -120,10 +112,10 @@ public class AiFeedbackService {
                 f.setAiReply(aiReply);
                 f.setCharacterId(characterId); // 첫 생성 시 캐릭터 ID 저장
             } else {
-                // 재생성: 답변과 시도 횟수만 업데이트, 캐릭터 ID는 유지 (원래 캐릭터 유지)
+                // 재생성: 답변, 시도 횟수, 캐릭터 ID 모두 업데이트 (현재 활성 캐릭터 반영)
                 f.setAttemptsUsed(attemptsUsed);
                 f.setAiReply(aiReply);
-                // characterId는 변경하지 않음 (과거 기록 유지)
+                f.setCharacterId(characterId); // 현재 활성 캐릭터로 업데이트
             }
             AiFeedback saved = feedbackRepo.saveAndFlush(f);
             

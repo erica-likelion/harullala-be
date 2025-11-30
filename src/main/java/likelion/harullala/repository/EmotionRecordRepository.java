@@ -37,6 +37,16 @@ public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Lo
             @Param("endDate") LocalDateTime endDate
     );
 
+    @Query("SELECT e FROM EmotionRecord e WHERE e.isShared = true " +
+           "AND e.userId IN :userIds " +
+           "AND e.createdAt >= :startDate " +
+           "ORDER BY e.createdAt DESC")
+    Page<EmotionRecord> findByIsSharedTrueAndUserIdInAndCreatedAtAfter(
+            @Param("userIds") List<Long> userIds,
+            @Param("startDate") LocalDateTime startDate,
+            Pageable pageable
+    );
+
     @Modifying
     @Query("DELETE FROM EmotionRecord e WHERE e.userId = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);
