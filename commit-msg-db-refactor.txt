@@ -1,7 +1,0 @@
-refactor: DB구조 수정을 위한 파일 수정 (기능은 동일)
-
-- FriendRequest와 Friendship 테이블을 FriendRelationship으로 통합
-- 친구 수락 시 INSERT 대신 UPDATE로 변경하여 성능 개선
-- user1_id < user2_id 정규화로 데이터 무결성 강화
-- API 스펙 및 모든 기능은 동일하게 유지
-

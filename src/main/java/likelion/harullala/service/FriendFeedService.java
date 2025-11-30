@@ -14,6 +14,7 @@ import likelion.harullala.repository.FriendRelationshipRepository;
 import likelion.harullala.repository.UserRepository;
 import likelion.harullala.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -51,22 +52,14 @@ public class FriendFeedService {
             return List.of(); // 친구가 없으면 빈 리스트 반환
         }
 
-        // 오늘 00시 이후의 공유된 감정 기록 조회
+        // 오늘 00시 이후의 공유된 감정 기록 조회 (DB 쿼리 레벨에서 필터링 및 페이지네이션)
         LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
         
-        // 모든 공유된 기록을 조회한 후 Java에서 필터링
-        List<EmotionRecord> allSharedRecords = emotionRecordRepository.findAll()
-                .stream()
-                .filter(record -> record.getIsShared() && 
-                                 friendIds.contains(record.getUserId()) && 
-                                 !record.getCreatedAt().isBefore(startOfDay))
-                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-                .collect(Collectors.toList());
+        // DB 쿼리 레벨에서 필터링, 정렬, 페이지네이션 처리
+        Page<EmotionRecord> emotionRecordPage = emotionRecordRepository
+                .findByIsSharedTrueAndUserIdInAndCreatedAtAfter(friendIds, startOfDay, pageable);
         
-        // 페이지네이션 적용
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), allSharedRecords.size());
-        List<EmotionRecord> sharedRecords = allSharedRecords.subList(start, end);
+        List<EmotionRecord> sharedRecords = emotionRecordPage.getContent();
 
         // 사용자가 읽은 기록 ID 목록 조회
         List<Long> readRecordIds = feedReadStatusRepository.findReadRecordIdsByReaderId(userId);
