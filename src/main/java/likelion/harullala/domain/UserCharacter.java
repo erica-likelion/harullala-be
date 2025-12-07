@@ -33,6 +33,10 @@ public class UserCharacter {
     @Column(name = "selected_at", nullable = false, updatable = false)
     private LocalDateTime selectedAt;
 
+    @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
     public void updateCharacter(Character newCharacter) {
         this.selectedCharacter = newCharacter;
     }
