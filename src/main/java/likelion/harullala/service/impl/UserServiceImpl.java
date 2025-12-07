@@ -50,6 +50,10 @@ public class UserServiceImpl implements UserService {
         Character newCharacter = characterRepository.findById(newCharacterId)
                 .orElseThrow(() -> new IllegalArgumentException("Character not found"));
 
+        if (!userCharacter.getIsActive()) {
+            userCharacter.setIsActive(true);
+        }
+
         userCharacter.updateCharacter(newCharacter);
     }
 
