@@ -41,20 +41,31 @@ public class UserServiceImpl implements UserService {
         return MyInfoResponse.of(user, characterInfo);
     }
 
-    @Override
     @Transactional
     public void updateCharacter(Long userId, Long newCharacterId) {
-        UserCharacter userCharacter = userCharacterRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalStateException("User has not selected a character yet."));
-
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
         Character newCharacter = characterRepository.findById(newCharacterId)
                 .orElseThrow(() -> new IllegalArgumentException("Character not found"));
 
-        if (!userCharacter.getIsActive()) {
-            userCharacter.setIsActive(true);
-        }
-
-        userCharacter.updateCharacter(newCharacter);
+        userCharacterRepository.findByUserId(userId)
+                .ifPresentOrElse(
+                        userCharacter -> {
+                            // User already has a character, so update it.
+                            if (!userCharacter.getIsActive()) {
+                                userCharacter.setIsActive(true);
+                            }
+                            userCharacter.updateCharacter(newCharacter);
+                        },
+                        () -> {
+                            // User does not have a character selected yet, so create it.
+                            UserCharacter newUserCharacter = UserCharacter.builder()
+                                    .user(user)
+                                    .selectedCharacter(newCharacter)
+                                    .build(); // isActive will be true by default because of @Builder.Default
+                            userCharacterRepository.save(newUserCharacter);
+                        }
+                );
     }
 
     @Override
