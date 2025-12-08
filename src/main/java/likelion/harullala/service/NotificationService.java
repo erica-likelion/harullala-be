@@ -49,8 +49,12 @@ public class NotificationService {
      */
     @Transactional
     public void sendNotification(Long userId, NotificationType type, String title, String message, Long relatedId, boolean skipPush) {
+        log.info("알림 전송 요청: userId={}, type={}, title={}, skipPush={}", userId, type, title, skipPush);
+        
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        log.info("사용자 조회 완료: userId={}, fcmToken 존재={}", userId, user.getFcmToken() != null && !user.getFcmToken().isEmpty());
 
         // 1. DB에 알림 저장
         Notification notification = Notification.builder()
@@ -63,15 +67,18 @@ public class NotificationService {
                 .build();
         
         notificationRepository.save(notification);
-        log.info("알림 저장 완료: userId={}, type={}, title={}, skipPush={}", userId, type, title, skipPush);
+        log.info("알림 저장 완료: userId={}, type={}, title={}, notificationId={}, skipPush={}", 
+                userId, type, title, notification.getId(), skipPush);
 
         // 2. FCM 푸시 전송 (skipPush가 false일 때만)
         if (!skipPush && user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
+            log.info("FCM 전송 시도: userId={}, fcmToken={}", userId, 
+                    user.getFcmToken().length() > 20 ? user.getFcmToken().substring(0, 20) + "..." : user.getFcmToken());
             sendFcmNotification(user.getFcmToken(), type, title, message, relatedId, notification.getId());
         } else if (skipPush) {
             log.info("푸시 알림이 차단되어 FCM 전송을 건너뜁니다. userId={}", userId);
         } else {
-            log.warn("FCM 토큰이 없습니다. userId={}", userId);
+            log.warn("FCM 토큰이 없습니다. userId={}, fcmToken={}", userId, user.getFcmToken());
         }
     }
 
@@ -80,6 +87,9 @@ public class NotificationService {
      */
     private void sendFcmNotification(String fcmToken, NotificationType type, String title, String message, Long relatedId, Long notificationId) {
         try {
+            log.info("FCM 전송 시도: type={}, title={}, fcmToken={}", type, title, 
+                fcmToken != null && fcmToken.length() > 20 ? fcmToken.substring(0, 20) + "..." : fcmToken);
+            
             // 알림 데이터 구성
             Map<String, String> data = new HashMap<>();
             data.put("type", type.name());
@@ -109,19 +119,26 @@ public class NotificationService {
                     .build();
 
             // FCM 전송
+            log.info("FirebaseMessaging.getInstance() 호출 전");
             String response = FirebaseMessaging.getInstance().send(fcmMessage);
-            log.info("FCM 전송 성공: {}", response);
+            log.info("FCM 전송 성공: response={}", response);
 
         } catch (FirebaseMessagingException e) {
-            log.error("FCM 전송 실패: {}", e.getMessage());
+            log.error("FCM 전송 실패 (FirebaseMessagingException): errorCode={}, message={}", 
+                    e.getMessagingErrorCode(), e.getMessage());
+            e.printStackTrace();
             
             // 토큰이 유효하지 않은 경우 처리
             if (e.getMessagingErrorCode() == MessagingErrorCode.INVALID_ARGUMENT ||
                 e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
                 log.warn("유효하지 않은 FCM 토큰입니다. 토큰 삭제를 고려해야 합니다.");
             }
+        } catch (IllegalStateException e) {
+            log.error("FCM 전송 실패 (IllegalStateException): Firebase가 초기화되지 않았습니다. message={}", e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
-            log.error("알 수 없는 오류로 FCM 전송 실패: {}", e.getMessage());
+            log.error("알 수 없는 오류로 FCM 전송 실패: exception={}, message={}", e.getClass().getName(), e.getMessage());
+            e.printStackTrace();
         }
     }
 

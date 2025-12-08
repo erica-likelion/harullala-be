@@ -95,11 +95,15 @@ public class AiFeedbackService {
      */
     @Transactional
     public void generateAndSendFeedbackAsync(Long recordId, Long userId, String text, likelion.harullala.domain.Character character, Long characterId, int attemptsUsed) {
-        log.info("AI 피드백 생성 시작: recordId={}, userId={}, characterId={}", recordId, userId, characterId);
+        log.info("AI 피드백 생성 시작: recordId={}, userId={}, characterId={}, text 길이={}", 
+                recordId, userId, characterId, text != null ? text.length() : 0);
         
         try {
             // AI 답변 생성
+            log.info("ChatGPT API 호출 시작: recordId={}, characterName={}", recordId, character != null ? character.getName() : "null");
             String aiReply = chatGptClient.generateFeedback(text, character);
+            log.info("ChatGPT API 응답 받음: recordId={}, 응답 길이={}, 응답 내용={}", 
+                    recordId, aiReply != null ? aiReply.length() : 0, aiReply);
 
             // 피드백 저장
             AiFeedback f = feedbackRepo.findByRecordId(recordId).orElse(null);
@@ -111,18 +115,21 @@ public class AiFeedbackService {
                 f.setAttemptsUsed(attemptsUsed);
                 f.setAiReply(aiReply);
                 f.setCharacterId(characterId); // 첫 생성 시 캐릭터 ID 저장
+                log.info("새 AI 피드백 생성: recordId={}", recordId);
             } else {
                 // 재생성: 답변, 시도 횟수, 캐릭터 ID 모두 업데이트 (현재 활성 캐릭터 반영)
                 f.setAttemptsUsed(attemptsUsed);
                 f.setAiReply(aiReply);
                 f.setCharacterId(characterId); // 현재 활성 캐릭터로 업데이트
+                log.info("AI 피드백 재생성: recordId={}, attemptsUsed={}", recordId, attemptsUsed);
             }
             AiFeedback saved = feedbackRepo.saveAndFlush(f);
             
-            log.info("AI 피드백 생성 완료: recordId={}, userId={}", recordId, userId);
+            log.info("AI 피드백 저장 완료: recordId={}, userId={}, aiReply={}", recordId, userId, saved.getAiReply());
             
             // 푸시 알림 전송
             try {
+                log.info("푸시 알림 전송 시작: userId={}, recordId={}", userId, recordId);
                 notificationService.sendNotification(
                     userId,
                     NotificationType.AI_FEEDBACK,
@@ -133,10 +140,12 @@ public class AiFeedbackService {
                 log.info("AI 피드백 푸시 알림 전송 완료: recordId={}, userId={}", recordId, userId);
             } catch (Exception e) {
                 log.error("AI 피드백 푸시 알림 전송 실패: recordId={}, userId={}, error={}", recordId, userId, e.getMessage(), e);
+                e.printStackTrace();
             }
             
         } catch (Exception e) {
             log.error("AI 피드백 생성 실패: recordId={}, userId={}, error={}", recordId, userId, e.getMessage(), e);
+            e.printStackTrace();
         }
     }
 
