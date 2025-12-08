@@ -49,3 +49,13 @@ firebase:
 # Encryption 설정 (AES-256, 32?? ?? ???)
 encryption:
   secret: ${ENCRYPTION_SECRET}
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    likelion.harullala: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.web: DEBUG
+    org.springframework.transaction: DEBUG

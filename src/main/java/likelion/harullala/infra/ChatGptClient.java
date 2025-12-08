@@ -13,7 +13,9 @@ import org.springframework.web.client.RestTemplate;
 
 import likelion.harullala.domain.Character;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ChatGptClient {
@@ -30,13 +32,18 @@ public class ChatGptClient {
     private final RestTemplate restTemplate = new RestTemplate();
     
     public String generateFeedback(String emotionText, Character character) {
+        log.info("=== AI 피드백 생성 시작 ===");
+        log.info("emotionText 길이: {}, character: {}", emotionText != null ? emotionText.length() : 0, 
+                character != null ? character.getName() : "null");
+        
         if (apiKey == null || apiKey.isEmpty()) {
-            // API 키가 없으면 기본 응답 반환
+            log.warn("API 키가 없습니다. 기본 응답 반환");
             return "오늘의 감정 피드백: " + emotionText;
         }
         
         try {
             String prompt = buildCharacterPrompt(emotionText, character);
+            log.debug("프롬프트 생성 완료. 프롬프트 길이: {}", prompt.length());
             
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -52,23 +59,43 @@ public class ChatGptClient {
             );
             
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            log.info("OpenAI API 호출 시작: {}", apiUrl);
             ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, request, Map.class);
+            
+            log.info("API 응답 상태: {}", response.getStatusCode());
             
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
+                log.debug("API 응답 본문 존재");
+                
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
-                if (!choices.isEmpty()) {
+                log.info("Choices 개수: {}", choices != null ? choices.size() : 0);
+                
+                if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                     String content = (String) message.get("content");
-                    return cleanResponse(content); // 따옴표, 이모티콘, 마크다운 제거
+                    log.info("=== 원본 응답 (처리 전) ===");
+                    log.info("{}", content);
+                    
+                    String cleaned = cleanResponse(content);
+                    log.info("=== 정리된 응답 (처리 후) ===");
+                    log.info("{}", cleaned);
+                    log.info("=== AI 피드백 생성 완료 ===");
+                    return cleaned;
+                } else {
+                    log.warn("Choices가 비어있습니다. 기본 응답 반환");
                 }
+            } else {
+                log.error("API 호출 실패. 상태: {}, 본문 존재: {}", response.getStatusCode(), response.getBody() != null);
             }
             
             // API 호출 실패 시 기본 응답
+            log.warn("기본 응답 반환: 오늘의 감정 피드백");
             return "오늘의 감정 피드백: " + emotionText;
             
         } catch (Exception e) {
             // 예외 발생 시 기본 응답
+            log.error("예외 발생: {} - {}", e.getClass().getName(), e.getMessage(), e);
             return "오늘의 감정 피드백: " + emotionText;
         }
     }
@@ -182,7 +209,11 @@ public class ChatGptClient {
      * 커스텀 프롬프트로 AI 메시지 생성
      */
     public String generateCustomFeedback(String customPrompt) {
+        log.info("=== 커스텀 AI 피드백 생성 시작 ===");
+        log.info("프롬프트 길이: {}", customPrompt != null ? customPrompt.length() : 0);
+        
         if (apiKey == null || apiKey.isEmpty()) {
+            log.warn("API 키가 없습니다.");
             return "AI 서비스를 사용할 수 없습니다.";
         }
         
@@ -201,23 +232,43 @@ public class ChatGptClient {
             );
             
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            log.info("OpenAI API 호출 시작: {}", apiUrl);
             ResponseEntity<Map> response = restTemplate.postForEntity(apiUrl, request, Map.class);
+            
+            log.info("API 응답 상태: {}", response.getStatusCode());
             
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
+                log.debug("API 응답 본문 존재");
+                
                 List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
-                if (!choices.isEmpty()) {
+                log.info("Choices 개수: {}", choices != null ? choices.size() : 0);
+                
+                if (choices != null && !choices.isEmpty()) {
                     Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                     String content = (String) message.get("content");
-                    return cleanResponse(content); // 따옴표, 이모티콘, 마크다운 제거
+                    log.info("=== 원본 응답 (처리 전) ===");
+                    log.info("{}", content);
+                    
+                    String cleaned = cleanResponse(content);
+                    log.info("=== 정리된 응답 (처리 후) ===");
+                    log.info("{}", cleaned);
+                    log.info("=== 커스텀 AI 피드백 생성 완료 ===");
+                    return cleaned;
+                } else {
+                    log.warn("Choices가 비어있습니다. 기본 응답 반환");
                 }
+            } else {
+                log.error("API 호출 실패. 상태: {}", response.getStatusCode());
             }
             
             // API 호출 실패 시 기본 응답
+            log.warn("기본 응답 반환: 이번 달도 수고했어요");
             return "이번 달도 수고했어요! 계속 응원할게요!";
             
         } catch (Exception e) {
             // 예외 발생 시 기본 응답
+            log.error("예외 발생: {} - {}", e.getClass().getName(), e.getMessage(), e);
             return "이번 달도 수고했어요! 계속 응원할게요!";
         }
     }
@@ -227,8 +278,11 @@ public class ChatGptClient {
      */
     private String cleanResponse(String response) {
         if (response == null) {
+            log.warn("응답이 null입니다.");
             return "";
         }
+        
+        log.debug("정리 전: {}", response);
         
         // 따옴표 제거 (큰따옴표, 작은따옴표)
         String cleaned = response.replaceAll("[\"']", "");
@@ -244,6 +298,8 @@ public class ChatGptClient {
         
         // 앞뒤 공백 제거
         cleaned = cleaned.trim();
+        
+        log.debug("정리 후: {}", cleaned);
         
         return cleaned;
     }
