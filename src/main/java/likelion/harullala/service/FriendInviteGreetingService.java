@@ -120,16 +120,13 @@ public class FriendInviteGreetingService {
             Response Rules:
             - Stay in character as "%s" (%s personality)
             - 1 line maximum, very short (10-15 characters in Korean)
-            - Encourage the user to invite friends and record emotions together
-            - CRITICAL: Use the Korean word "기록" (meaning "record/write down") NOT "녹음" (meaning "recording/audio recording")
-            - The word "기록" means writing down emotions in text, NOT audio recording
+            - Encourage the user to invite friends to write records together
             - Don't be pushy, be natural and in character
             - Use the specified speech style: %s
             - NO quotation marks, NO emojis, NO markdown formatting
             - Pure text only
             
-            Tell the user in Korean that it would be nice to record emotions (기록) with friends, using this character's speaking style.
-            IMPORTANT: Use "기록" (writing down) NOT "녹음" (audio recording).
+            Tell the user in Korean that it would be nice to write records with friends, using this character's speaking style.
             """, characterName, characterTag, characterDescription, 
                  characterTag, characterDescription, speechStyle,
                  characterName, characterTag, speechStyle);
