@@ -162,7 +162,8 @@ public class FriendReminderService {
                 - NO quotation marks, NO emojis, NO markdown formatting
                 - Pure text only
                 
-                Tell the user in Korean that they can invite friends to make recording more fun.
+                Tell the user in Korean that they can invite friends to make writing emotion records more fun.
+
                 """, characterName, characterTag, characterDescription, 
                      characterTag, characterDescription, speechStyle,
                      characterName, characterTag, speechStyle);
@@ -189,7 +190,7 @@ public class FriendReminderService {
                 - Stay in character as "%s" (%s personality)
                 - 1 line maximum, very short
                 - Inform the user about friends who haven't recorded yet
-                - Encourage friends to write records regularly
+                - Encourage friends to write emotion records regularly
                 - Tone: Inform about the situation, not asking user to tell friends
                 - Use the specified speech style: %s
                 - NO quotation marks, NO emojis, NO markdown formatting
@@ -220,12 +221,12 @@ public class FriendReminderService {
                 Response Rules:
                 - Stay in character as "%s" (%s personality)
                 - 1 line maximum, very short
-                - Celebrate that all friends have recorded
+                - Celebrate that all friends have written their emotion records today
                 - Use the specified speech style: %s
                 - NO quotation marks, NO emojis, NO markdown formatting
                 - Pure text only
                 
-                Celebrate in Korean that all friends have recorded, using this character's speaking style.
+                Celebrate in Korean that all friends have written their emotion records today, using this character's speaking style.
                 """, characterName, characterTag, characterDescription, friendCount,
                      characterTag, characterDescription, speechStyle,
                      characterName, characterTag, speechStyle);
