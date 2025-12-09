@@ -129,11 +129,18 @@ public class ChatGptClient {
             - Stay in character as "%s" (%s personality)
             - Write 3-4 sentences (not shorter, not longer)
             - Use the specified speech style: %s
-            - Respond in Korean naturally matching this character's speaking style
             - NO quotation marks, NO emojis, NO markdown formatting
             - Pure text only
             
-            Respond to the user's emotion as this character would.
+            CRITICAL - Korean Language Quality:
+            - 반드시 자연스러운 한국어로 응답하세요
+            - 번역투 표현을 절대 사용하지 마세요 (예: "~것입니다", "~하는 것 같습니다" 등 어색한 표현 금지)
+            - 한국인이 일상에서 실제로 사용하는 표현만 사용하세요
+            - 문장이 자연스럽게 이어지도록 작성하세요
+            - 주어 생략, 조사 사용 등 한국어 문법에 맞게 작성하세요
+            - 어색하거나 기계적인 번역체 문장은 절대 금지
+            
+            Respond to the user's emotion as this character would, in natural Korean.
             """, characterName, characterTag, characterDescription, emotionText, 
                  characterTag, characterDescription, speechStyle,
                  characterName, characterTag, speechStyle);
@@ -345,11 +352,20 @@ public class ChatGptClient {
             - 1-2 sentences maximum
             - Encourage user based on their monthly emotion patterns
             - Use the specified speech style: %s
-            - Respond in Korean naturally matching this character's speaking style
             - NO quotation marks, NO emojis, NO markdown formatting
             - Pure text only
             
-            Give encouraging message as this character would.
+            CRITICAL - Korean Language Quality:
+            - 반드시 자연스러운 한국어로 응답하세요
+            - 번역투 표현을 절대 사용하지 마세요 (예: "~것입니다", "~하는 것 같습니다", "~되었습니다" 등 어색한 표현 금지)
+            - 한국인이 일상에서 실제로 사용하는 표현만 사용하세요
+            - 문장이 자연스럽게 이어지도록 작성하세요
+            - 주어 생략, 조사 사용 등 한국어 문법에 맞게 작성하세요
+            - 어색하거나 기계적인 번역체 문장은 절대 금지
+            - 예시: "힘든 달이었구나" (O), "힘든 달이었던 것 같습니다" (X)
+            - 예시: "고생 많았어" (O), "고생이 많으셨습니다" (X, 너무 딱딱함)
+            
+            Give encouraging message as this character would, in natural Korean.
             """, characterName, characterTag, characterDescription, reportSummary, 
                  characterTag, characterDescription, speechStyle,
                  characterName, characterTag, speechStyle);
