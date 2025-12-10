@@ -126,6 +126,12 @@ public class FriendInviteGreetingService {
             - NO quotation marks, NO emojis, NO markdown formatting
             - Pure text only
             
+            Korean Language Quality:
+            - 반드시 자연스러운 한국어로 응답하세요
+            - 번역투 표현을 절대 사용하지 마세요 (예: "~것입니다", "쓰는 감정기록", "쓰기 기록" 등 어색한 표현 금지)
+            - 한국인이 일상에서 실제로 사용하는 표현만 사용하세요
+            - 어색하거나 기계적인 번역체 문장은 절대 금지
+            
             Tell the user in Korean that it would be nice to write records with friends, using this character's speaking style.
             """, characterName, characterTag, characterDescription, 
                  characterTag, characterDescription, speechStyle,
